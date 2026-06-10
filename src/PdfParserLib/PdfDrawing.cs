@@ -1,13 +1,7 @@
-﻿using OpenCvSharp;
-using SkiaSharp;
-using System.Drawing;
+﻿using System.Drawing;
 using System.Text.RegularExpressions;
-using Tesseract;
-using UglyToad.PdfPig;
-using UglyToad.PdfPig.Rendering.Skia;
 using D = System.Drawing;
 using P = UglyToad.PdfPig.Content;
-using T = Tesseract;
 
 namespace PdfParserLib
 {
@@ -65,51 +59,51 @@ namespace PdfParserLib
         /// Extracts text from a rendered PDF page image using OpenCV and Tesseract.
         /// Responsibility: OCR text extraction only.
         /// </summary>
-        public static IReadOnlyList<TextElement> ExtractOcrText(
-            PdfDocument document,
-            int pageNumber,
-            TesseractEngine engine,
-            float scale = 1)
-        {
-            document.AddSkiaPageFactory();
-            using SKBitmap bitmap = document.GetPageAsSKBitmap(pageNumber, scale);
-            using SKImage image = SKImage.FromBitmap(bitmap);
-            using SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
+        //public static IReadOnlyList<TextElement> ExtractOcrText(
+        //    PdfDocument document,
+        //    int pageNumber,
+        //    TesseractEngine engine,
+        //    float scale = 1)
+        //{
+        //    document.AddSkiaPageFactory();
+        //    using SKBitmap bitmap = document.GetPageAsSKBitmap(pageNumber, scale);
+        //    using SKImage image = SKImage.FromBitmap(bitmap);
+        //    using SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
 
-            byte[] imageBytes = data.ToArray();
-            using Mat mat = Mat.FromImageData(imageBytes);
-            using Mat gray = mat.CvtColor(ColorConversionCodes.BGR2GRAY);
-            using Mat thresh = gray.AdaptiveThreshold(
-                255,
-                AdaptiveThresholdTypes.GaussianC,
-                ThresholdTypes.Binary,
-                11,
-                2);
+        //    byte[] imageBytes = data.ToArray();
+        //    using Mat mat = Mat.FromImageData(imageBytes);
+        //    using Mat gray = mat.CvtColor(ColorConversionCodes.BGR2GRAY);
+        //    using Mat thresh = gray.AdaptiveThreshold(
+        //        255,
+        //        AdaptiveThresholdTypes.GaussianC,
+        //        ThresholdTypes.Binary,
+        //        11,
+        //        2);
 
-            byte[] ocrBytes = thresh.ToBytes(".png");
-            using Pix pix = Pix.LoadFromMemory(ocrBytes);
-            using T.Page page = engine.Process(pix);
+        //    byte[] ocrBytes = thresh.ToBytes(".png");
+        //    using Pix pix = Pix.LoadFromMemory(ocrBytes);
+        //    using T.Page page = engine.Process(pix);
 
-            ResultIterator iterator = page.GetIterator();
-            iterator.Begin();
+        //    ResultIterator iterator = page.GetIterator();
+        //    iterator.Begin();
 
-            List<TextElement> results = new List<TextElement>();
+        //    List<TextElement> results = new List<TextElement>();
 
-            do
-            {
-                string text = iterator.GetText(PageIteratorLevel.Word);
-                if (string.IsNullOrWhiteSpace(text))
-                {
-                    continue;
-                }
+        //    do
+        //    {
+        //        string text = iterator.GetText(PageIteratorLevel.Word);
+        //        if (string.IsNullOrWhiteSpace(text))
+        //        {
+        //            continue;
+        //        }
 
-                iterator.TryGetBoundingBox(PageIteratorLevel.Word, out T.Rect rect);
-                results.Add(new(text.Trim(), RectUtility.ToRectangle(rect)));
-            }
-            while (iterator.Next(PageIteratorLevel.Word));
+        //        iterator.TryGetBoundingBox(PageIteratorLevel.Word, out T.Rect rect);
+        //        results.Add(new(text.Trim(), RectUtility.ToRectangle(rect)));
+        //    }
+        //    while (iterator.Next(PageIteratorLevel.Word));
 
-            return results;
-        }
+        //    return results;
+        //}
 
 
         /// <summary>
@@ -141,7 +135,7 @@ namespace PdfParserLib
             IEnumerable<SymbolElement> symbols,
             double maxDistance)
         {
-            D.PointF pt = RectUtility.GetCenter(text.Bounds);
+            PointF pt = RectUtility.GetCenter(text.Bounds);
 
             IEnumerable<(SymbolElement Symbol, double Distance)> distances =
                 symbols.Select(symbol =>

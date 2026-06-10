@@ -1,4 +1,7 @@
 ﻿using System.Drawing;
+using System.Text.Json.Serialization;
+using UglyToad.PdfPig.Content;
+using UglyToad.PdfPig.Core;
 
 namespace PdfParserLib.Entity
 {

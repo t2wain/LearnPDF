@@ -6,5 +6,6 @@
         public string ImageFolder { get; set; } = "";
         public IList<string> ImageFiles { get; set; } = [];
         public string OcrTrainedDataFolderPath { get; set; } = "";
+        public IList<string> TagPatterns { get; set; } = [];
     }
 }

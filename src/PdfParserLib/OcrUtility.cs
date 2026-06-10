@@ -1,5 +1,4 @@
 ﻿using OpenCvSharp;
-using SkiaSharp;
 using System.Drawing;
 using Tesseract;
 using T = Tesseract;
@@ -25,20 +24,15 @@ namespace PdfParserLib
         public static IReadOnlyList<PdfDrawing.TextElement> ExtractOcrText(
             string fileName,
             TesseractEngine engine,
-            float scale = 1)
-        {
-            SKImage image = ImageUtility.CreateSKImage(fileName);
-            return ExtractOcrText(image, engine, scale);
-        }
+            float scale = 1) => 
+                ExtractOcrText(File.ReadAllBytes(fileName), engine, scale);
+
 
         public static IReadOnlyList<PdfDrawing.TextElement> ExtractOcrText(
-            SKImage image,
+            byte[] imageBytes,
             TesseractEngine engine,
             float scale = 1)
         {
-            using SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
-
-            byte[] imageBytes = data.ToArray();
             using Mat mat = Mat.FromImageData(imageBytes);
             using Mat gray = mat.CvtColor(ColorConversionCodes.BGR2GRAY);
             using Mat thresh = gray.AdaptiveThreshold(

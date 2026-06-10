@@ -8,6 +8,7 @@ I'm using the following .NET nuget libraries in my application:
 - Tesseract
 - OpenCvSharp4
 - OpenCvSharp4.runtime.win
+- iText
 
 Given a PDF engineering drawing, I plan to extract various information from such drawing.
 
@@ -37,3 +38,18 @@ Each of these information are embedded in a labled box arranged inside the title
 # Extract reference of continuation drawing number
 
 # Extract revision history from the revision table
+
+# Extract text blocks from drawing
+
+I'm using the following .NET nuget libraries in my application:
+
+- PdfPig
+- PdfPig.Rendering.Skia
+- Tabula
+- Tesseract
+- OpenCvSharp4
+- OpenCvSharp4.runtime.win
+
+Write code to extract block of text from a PDF drawing. Each block of text are isolated from other blocks by spaces. A block of text may have more than one line of text. Line in the block are aligned in many different ways, center, left, or right aligned. A line of text may have more than one words. Each word must be separated by a space. Block of text might be rotated. All words are in upper case. Word are aligned center in the line.
+
+The code is to be in C# consist of static functions in the functional programming style.

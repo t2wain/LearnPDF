@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PdfTest", "PdfTest\PdfTest.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PdfApp", "PdfApp\PdfApp.csproj", "{E164BA77-0921-45B6-B68E-5CE88CF252BC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RuleLib", "RuleLib\RuleLib.csproj", "{7712B15A-085C-4781-B2B4-6F1FC2769578}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{E164BA77-0921-45B6-B68E-5CE88CF252BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E164BA77-0921-45B6-B68E-5CE88CF252BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E164BA77-0921-45B6-B68E-5CE88CF252BC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7712B15A-085C-4781-B2B4-6F1FC2769578}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7712B15A-085C-4781-B2B4-6F1FC2769578}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7712B15A-085C-4781-B2B4-6F1FC2769578}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7712B15A-085C-4781-B2B4-6F1FC2769578}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -106,6 +106,8 @@ namespace PdfParserLib
             public bool SavePngImage { get; set; }
             public bool SavePdfPath { get; set; }
             public bool SaveSvgCommand { get; set; }
+            public double? PageHeight { get; set; }
+            public double? PageWidth { get; set; }
         }
 
         public static PdfDocData ExploreDocument(PdfDocument document, PdfExtractOptions? options = null)
@@ -154,6 +156,7 @@ namespace PdfParserLib
         public static PdfPageData ExplorePage(Page page, PdfExtractOptions? options = null)
         {
             PdfExtractOptions opts = options ?? new();
+            opts = opts with { PageHeight = page.Height, PageWidth = page.Width };
             Page p = page;
 
             CropBox c = p.CropBox;
@@ -162,6 +165,7 @@ namespace PdfParserLib
 
             DictionaryToken d = p.Dictionary;
             IReadOnlyList<Letter> l = p.Letters;
+            ExploreLetters(l);
 
             MediaBox b = p.MediaBox;
             PdfRectangle b1 = b.Bounds;
@@ -253,7 +257,7 @@ namespace PdfParserLib
                     TopRightX = b.TopRight.X,
                     TopRightY = b.TopRight.Y,
                     TextOrientation = w.TextOrientation.ToString(),
-                    Rotation = b.Rotation,
+                    Rotation = b.Rotation
                 };
                 if (pageHeight.HasValue)
                     o.Bound = RectUtility.ToRectangle(b, pageHeight.Value);
@@ -268,6 +272,11 @@ namespace PdfParserLib
             o2 = TextOrientation.Other;
 
             return lst;
+        }
+
+        public static void ExploreLetters(IEnumerable<Letter> letters)
+        {
+
         }
 
         public static List<PdfPathData> ExplorePdfPath(IEnumerable<PdfPath> paths, 
@@ -366,7 +375,7 @@ namespace PdfParserLib
             foreach (PdfSubpath.IPathCommand cmd in commands)
             {
                 PdfRectangle? r2 = cmd.GetBoundingRectangle();
-                cmd.WriteSvg(b, 10);
+                cmd.WriteSvg(b, options?.PageHeight ?? 10);
                 if (opts.SaveData && opts.SavePdfPath && opts.SaveSvgCommand)
                     lst.Add(b.ToString());
                 b.Clear();
