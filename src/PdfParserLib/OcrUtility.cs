@@ -21,14 +21,14 @@ namespace PdfParserLib
             return engine;
         }
 
-        public static IReadOnlyList<PdfDrawing.TextElement> ExtractOcrText(
+        public static IReadOnlyList<PdfDrawingUtility.TextElement> ExtractOcrText(
             string fileName,
             TesseractEngine engine,
             float scale = 1) => 
                 ExtractOcrText(File.ReadAllBytes(fileName), engine, scale);
 
 
-        public static IReadOnlyList<PdfDrawing.TextElement> ExtractOcrText(
+        public static IReadOnlyList<PdfDrawingUtility.TextElement> ExtractOcrText(
             byte[] imageBytes,
             TesseractEngine engine,
             float scale = 1)
@@ -49,7 +49,7 @@ namespace PdfParserLib
             ResultIterator iterator = page.GetIterator();
             iterator.Begin();
 
-            List<PdfDrawing.TextElement> results = new();
+            List<PdfDrawingUtility.TextElement> results = new();
 
             do
             {

@@ -27,6 +27,7 @@ namespace PdfApp
 
             builder.Services.Configure<AppConfig>(iconfig.GetSection("AppConfig"));
             builder.Services.AddSingleton<MainApp>();
+            builder.Services.AddScoped<PdfDrawing>();
 
             return builder;
         }

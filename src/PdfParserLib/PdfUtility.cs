@@ -46,9 +46,7 @@ namespace PdfParserLib
                 .ToList();
 
         public static IReadOnlyList<string> ExtractAllWords(Page page) =>
-            page.GetWords()
-                .Select(word => word.Text)
-                .ToList();
+            PdfTextUtility.ExtractText(page);
 
         #endregion
 

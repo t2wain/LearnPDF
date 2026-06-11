@@ -1,20 +1,23 @@
 ﻿using System.Text;
 using UglyToad.PdfPig.Content;
 using UglyToad.PdfPig.Core;
-using static iText.IO.Util.IntHashtable;
 
 namespace PdfParserLib
 {
-    public static class PdfTextExtractor2
+    public static class PdfTextUtility
     {
-        public class TextLine
+        public static double LineToleranceAdj { get; set; } = 1.5;
+        public static double WordWidthToleranceAdj { get; set; } = 2.3;
+        public static double WordBlockWidthToleranceAdj { get; set; } = 2.5;
+        public static string BlockDelimiter { get; set; } = "::::";
+
+        private class TextLine
         {
             public string Text { get; set; } = null!;
             public List<Word> Words { get; set; } = [];
             public PdfRectangle BoundingBox { get; set; }
             public TextOrientation Direction { get; set; }
         }
-
 
         public static List<string> ExtractText(Page page)
         {
@@ -41,7 +44,10 @@ namespace PdfParserLib
             return res;
         }
 
-        public static List<TextLine> BuildLinesForDirection(
+        /// <summary>
+        /// Align embedded words into line based on X coordinate
+        /// </summary>
+        private static List<TextLine> BuildLinesForDirection(
             List<Word> words, TextOrientation direction)
         {
             var projected = words
@@ -55,15 +61,16 @@ namespace PdfParserLib
                 })
                 .ToList();
 
-            // Cluster into lines
             double medianHeight = projected
                 .Select(p => p.Height)
                 .OrderBy(h => h)
                 .ElementAt(projected.Count / 2);
 
             // tighter than before
-            double lineTolerance = medianHeight * 1.5;
+            double lineTolerance = medianHeight * LineToleranceAdj;
 
+            // Group a list of words into lines of text based
+            // on the Y coordinate within a certain Y range tolerance
             var lines = ClusterBy(projected, p => p.Y, lineTolerance);
 
             var result = new List<TextLine>();
@@ -96,35 +103,60 @@ namespace PdfParserLib
             return result;
         }
 
+        /// <summary>
+        /// Group a list of items based on differences between 
+        /// their value that is <= tolerance
+        /// </summary>
+        /// <typeparam name="T">Item</typeparam>
+        /// <param name="items">List of items</param>
+        /// <param name="selector">return a value for grouping</param>
+        /// <param name="tolerance">The difference between their values <= tolerance</param>
+        /// <returns></returns>
         private static List<List<T>> ClusterBy<T>(
             List<T> items,
             Func<T, double> selector,
             double tolerance)
         {
+            // sorted words by Y coordinate
             List<T> sorted = items.OrderBy(selector).ToList();
+
             var clusters = new List<List<T>>();
 
             foreach (var item in sorted)
             {
+                // return Y coordinate
                 double value = selector(item);
 
+                // find the first line that the word
+                // might belong to based on Y coordnate
+                // within a Y range tolerance
                 var cluster = clusters.FirstOrDefault(c =>
                     Math.Abs(selector(c[0]) - value) < tolerance);
 
                 if (cluster == null)
                 {
+                    // create new line
                     cluster = new List<T>();
                     clusters.Add(cluster);
                 }
 
+                // found exsiting line
                 cluster.Add(item);
             }
 
             return clusters;
         }
 
-
-        public static string BuildLineTextWithBlocks(
+        /// <summary>
+        /// Add separator for block of text within line.
+        /// A line of text might consist of block of text 
+        /// separated by wide space.
+        /// </summary>
+        /// <param name="words">Line of words</param>
+        /// <param name="direction">Text orientation</param>
+        /// <returns>Concatenated words of the line with delimeter 
+        /// separate each words and each block of words</returns>
+        private static string BuildLineTextWithBlocks(
             List<Word> words,
             TextOrientation direction)
         {
@@ -140,29 +172,28 @@ namespace PdfParserLib
             double medianWidth = widths[widths.Count / 2];
 
             // Thresholds (tunable)
-            double wordThreshold = medianWidth * 2.3;
-            double blockThreshold = medianWidth * 2.5;
-
+            double wordThreshold = medianWidth * WordWidthToleranceAdj;
+            double blockThreshold = medianWidth * WordBlockWidthToleranceAdj;
 
             var sb = new StringBuilder();
             sb.Append(items[0].Word.Text);
 
-
             for (int i = 1; i < items.Count; i++)
             {
-                var prev = items[i - 1];
-                var curr = items[i];
+                var prev = items[i - 1]; // previous word
+                var curr = items[i]; // current word
 
+                // calculate the space between the words
                 double gap = Math.Abs(curr.X - prev.X - prev.Width);
 
                 if (gap > blockThreshold)
                 {
-                    // LOCK separator (strong separation)
-                    sb.Append("::::"); // or "\t" or " | "
+                    // add delimiter between blocks of text
+                    sb.Append(BlockDelimiter);
                 }
                 else if (gap > wordThreshold)
                 {
-                    // WORD separator
+                    // add delimiter between words
                     sb.Append(" ");
                 }
 
@@ -172,9 +203,11 @@ namespace PdfParserLib
             return sb.ToString();
         }
 
-
         #region Utility
 
+        /// <summary>
+        /// Get X coordinate
+        /// </summary>
         private static double GetProjectedX(PdfRectangle rect, TextOrientation dir) =>
             dir switch
             {
@@ -185,6 +218,9 @@ namespace PdfParserLib
                 _ => rect.Left
             };
 
+        /// <summary>
+        /// Get Y coordinate
+        /// </summary>
         public static double GetProjectedY(PdfRectangle rect, TextOrientation dir)
         {
             double centerY = (rect.Top + rect.Bottom) / 2.0;
@@ -199,7 +235,9 @@ namespace PdfParserLib
             };
         }
 
-
+        /// <summary>
+        /// Get width
+        /// </summary>
         private static double GetProjectedWidth(PdfRectangle rect, TextOrientation dir) =>
             dir switch
             {
@@ -208,7 +246,9 @@ namespace PdfParserLib
 
             };
 
-
+        /// <summary>
+        /// Get height
+        /// </summary>
         private static double GetProjectedHeight(PdfRectangle rect, TextOrientation dir) =>
             dir switch
             {

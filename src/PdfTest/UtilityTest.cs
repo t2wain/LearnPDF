@@ -29,7 +29,7 @@ namespace PdfTest
             using PdfDocument doc = PdfUtility.GetPdfDocument(fileName);
             foreach (var p in doc.GetPages())
             {
-                PdfTextExtractor2.ExtractText(p);
+                PdfTextUtility.ExtractText(p);
             }
         }
 
@@ -55,11 +55,29 @@ namespace PdfTest
         [Fact]
         public void ExtractEquipmentTag()
         {
-            string fileName = _ctx.FileNames[0];
-            IEnumerable<string> words = PdfUtility.ExtractAllWords(fileName).Distinct().ToList();
-            string p = _ctx.Config.TagPatterns[0];
-            Regex r = new(_ctx.Config.TagPatterns[0], RegexOptions.IgnoreCase);
-            words = words.Where(w => r.IsMatch(w)).ToList();
+            List<string> eqTags = new();
+            string fileName = _ctx.FileNames[1];
+
+            PdfDrawing dwg = _ctx.GetDrawing();
+            var tags = dwg.DetectEquipmentTag(fileName);
+
+            //using PdfDocument doc = PdfUtility.GetPdfDocument(fileName);
+            //foreach (var page in doc.GetPages())
+            //{
+            //    var words = PdfTextUtility.ExtractText(page);
+            //    string pat = _ctx.Config.TagPatterns[0];
+            //    Regex r = new(_ctx.Config.TagPatterns[0], RegexOptions.IgnoreCase);
+            //    var tags = words
+            //        .Where(w => r.IsMatch(w))
+            //        .SelectMany(w => r.Matches(w))
+            //        .Select(m => m.Groups[1].Value)
+            //        .Distinct();
+            //    eqTags.AddRange(tags);
+            //}
+            //eqTags = eqTags
+            //    .Distinct()
+            //    .OrderBy(t => t)
+            //    .ToList();
         }
 
         [Fact]

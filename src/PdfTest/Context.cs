@@ -23,6 +23,8 @@ namespace PdfTest
             _cfg = _host.Services.GetRequiredService<IOptions<AppConfig>>().Value;
         }
 
+        public PdfDrawing GetDrawing() => _host.Services.GetRequiredService<PdfDrawing>();
+
         public AppConfig Config => _cfg;
 
         public IList<string> FileNames => _cfg.PDFFiles;
