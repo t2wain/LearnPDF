@@ -36,6 +36,30 @@ namespace PdfTest
         }
 
         [Fact]
+        public void FindDwgGrid()
+        {
+            string fileName = _ctx.FileNames[1];
+            IEnumerable<PdfTextUtility.TextLine> lines = PdfTextUtility.ExtractText(fileName);
+
+            var grid = PdfDrawingUtility.GetGridLabel(lines);
+            
+            lines = lines.Where(l => l.Direction == TextOrientation.Horizontal).ToList();
+            var block = PdfDrawingUtility.GetTextBlock(lines, grid, "K", null, null, "9");
+            var block2 = PdfDrawingUtility.GetTextBlock(lines, 2025, 2200, 100, 200);
+            var block3 = PdfDrawingUtility.GetTextBlock(lines, 2025, 2200, 40, 65);
+        }
+
+        [Fact]
+        public void FindDwgInfo()
+        {
+            string fileName = _ctx.FileNames[4];
+            IEnumerable<PdfTextUtility.TextLine> lines = PdfTextUtility.ExtractText(fileName);
+            lines = lines.Where(l => l.Direction == TextOrientation.Horizontal).ToList();
+            var titles = PdfDrawingUtility.GetTitleBlock(lines);
+            var info = PdfDrawingUtility.GetDrawingNo(lines);
+        }
+
+        [Fact]
         public void SavePdfToImage()
         {
             string fileName = _ctx.FileNames[0];

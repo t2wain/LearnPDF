@@ -1,5 +1,8 @@
-﻿using System.Text.RegularExpressions;
-using UglyToad.PdfPig;
+﻿using OpenCvSharp;
+using Svg;
+using System.Text.RegularExpressions;
+using UglyToad.PdfPig.Content;
+using UglyToad.PdfPig.DocumentLayoutAnalysis;
 
 namespace PdfParserLib
 {
@@ -9,6 +12,16 @@ namespace PdfParserLib
         {
             public string FileName { get; set; } = null!;
             public List<string> Tags { get; set; } = [];
+        }
+
+        public record GridLabel
+        {
+            public Dictionary<string, double> XLabel { get; set; } = [];
+            public Dictionary<string, double> YLabel { get; set; } = [];
+
+            public (double X, double Y) GetCoord(string xLabel, string yLabel) =>
+                (XLabel.TryGetValue(xLabel, out double x) ? x : double.NaN,
+                 YLabel.TryGetValue(yLabel, out double y) ? y : double.NaN);
         }
 
         #region Tags
@@ -65,5 +78,79 @@ namespace PdfParserLib
 
         #endregion
 
+        public static GridLabel GetGridLabel(IEnumerable<PdfTextUtility.TextLine> lines)
+        {
+            var grid = new GridLabel();
+
+            var s = string.Join(PdfTextUtility.BlockDelimiter, ["A", "B", "C"]);
+            var hlines = lines.Where(l => l.Direction == TextOrientation.Horizontal).ToList();
+
+            if (hlines.FirstOrDefault(l => Regex.IsMatch(l.Text, s)) is PdfTextUtility.TextLine hgrid)
+            {
+                foreach (var b in hgrid.Blocks)
+                    grid.XLabel.TryAdd(b.Text, b.X);
+            }
+            ;
+
+            s = $"{PdfTextUtility.BlockDelimiter}[\\d]+$";
+
+            var ycoords = hlines
+                .Where(l => Regex.IsMatch(l.Text, s))
+                .Where(l => l.Blocks.Any(b => b.BoundingBox.Left > 2300))
+                .SelectMany(l => l.Blocks)
+                .Where(b => b.BoundingBox.Left > 2300)
+                .ToList();
+
+            foreach (var b in ycoords)
+                grid.YLabel.TryAdd(b.Text, b.Y);
+
+            return grid;
+        }
+
+        public static List<PdfTextUtility.TextBlock> GetTextBlock(
+            IEnumerable<PdfTextUtility.TextLine> lines,
+            GridLabel grid, string? fromX, string? toX, string? fromY, string? toY)
+        {
+            double? fx = fromX == null ? null : grid.XLabel[fromX];
+            double? tx = toX == null ? null : grid.XLabel[toX];
+            double? fy = fromY == null ? null : grid.YLabel[fromY];
+            double? ty = toY == null ? null : grid.YLabel[toY];
+            return GetTextBlock(lines, fx, tx, fy, ty);
+        }
+
+        public static List<PdfTextUtility.TextBlock> GetTextBlock(
+            IEnumerable<PdfTextUtility.TextLine> lines,
+           double? fromX, double? toX, double? fromY, double? toY)
+        {
+            var q = lines.SelectMany(l => l.Blocks);
+            if (fromX != null)
+                q = q.Where(b => b.X >= fromX);
+            if (toX != null)
+                q = q.Where(b => b.X <= toX);
+            if (fromY != null)
+                q = q.Where(b => b.Y >= fromY);
+            if (toY != null)
+                q = q.Where(b => b.Y <= toY);
+
+            var blocks = q.ToList();
+            return blocks;
+        }
+
+        public static List<string> GetTitleBlock(IEnumerable<PdfTextUtility.TextLine> lines)
+        {
+            var block = GetTextBlock(lines, 2025, 2200, 100, 200);
+            return block.Select(b => b.Text).ToList();
+        }
+
+        public static List<string> GetDrawingNo(IEnumerable<PdfTextUtility.TextLine> lines)
+        {
+            var block = GetTextBlock(lines, 2025, 2200, 40, 65);
+            List<string> result = [];
+            if (block.FirstOrDefault() is PdfTextUtility.TextBlock b)
+            {
+                result = b.Text.Split(" ").ToList();
+            }
+            return result;
+        }
     }
 }
