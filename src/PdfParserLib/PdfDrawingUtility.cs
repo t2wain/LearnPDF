@@ -1,18 +1,12 @@
-﻿using OpenCvSharp;
-using Svg;
+﻿using iText.Signatures.Validation.Events;
 using System.Text.RegularExpressions;
 using UglyToad.PdfPig.Content;
-using UglyToad.PdfPig.DocumentLayoutAnalysis;
 
 namespace PdfParserLib
 {
     public static class PdfDrawingUtility
     {
-        public record TagInDocument
-        {
-            public string FileName { get; set; } = null!;
-            public List<string> Tags { get; set; } = [];
-        }
+        #region Entity
 
         public record GridLabel
         {
@@ -24,13 +18,40 @@ namespace PdfParserLib
                  YLabel.TryGetValue(yLabel, out double y) ? y : double.NaN);
         }
 
+        public class DocInfo
+        {
+            public List<string> Title { get; set; } = [];
+            public string ProjectNo { get; set; } = "";
+            public string DrawingNo { get; set; } = "";
+            public string RevNo { get; set; } = "";
+            public List<string> Tags { get; set; } = [];
+        }
+
+        public static DocInfo ExtractDocInfo(string fileName, IEnumerable<string> tagPatterns)
+        {
+            var lines = PdfTextUtility.ExtractText(fileName);
+            var title = GetTitleBlock(lines);
+            var drawingNo = GetDrawingNo(lines)!;
+            var tags = ExtractTagFromFile(fileName, tagPatterns);
+            return new DocInfo()
+            {
+                Title = title,
+                ProjectNo = drawingNo[1],
+                DrawingNo = drawingNo[2],
+                RevNo = drawingNo[3],
+                Tags = tags
+            };
+        }
+
+        #endregion
+
         #region Tags
 
-        public static List<TagInDocument> ExtractTagFromFile(
+        public static List<DocInfo> ExtractTagFromFile(
             IEnumerable<string> fileNames, IEnumerable<string> patterns) =>
-                fileNames.Select(f => new TagInDocument()
+                fileNames.Select(f => new DocInfo()
                 {
-                    FileName = f,
+                    DrawingNo = f,
                     Tags = ExtractTagFromFile(f, patterns)
                 }).ToList();
 

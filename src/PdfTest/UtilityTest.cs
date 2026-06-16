@@ -26,7 +26,7 @@ namespace PdfTest
         [Fact]
         public void ExtractEquipmentTag2()
         {
-            IEnumerable<PdfDrawingUtility.TagInDocument> docs = 
+            IEnumerable<PdfDrawingUtility.DocInfo> docs = 
                 PdfDrawingUtility.ExtractTagFromFile(_ctx.FileNames, _ctx.Config.TagPatterns);
             var tags = docs
                 .SelectMany(d => d.Tags)
@@ -57,6 +57,14 @@ namespace PdfTest
             lines = lines.Where(l => l.Direction == TextOrientation.Horizontal).ToList();
             var titles = PdfDrawingUtility.GetTitleBlock(lines);
             var info = PdfDrawingUtility.GetDrawingNo(lines);
+        }
+
+        [Fact]
+        public void GetDocIno()
+        {
+            var docs = _ctx.FileNames
+                .Select(f => PdfDrawingUtility.ExtractDocInfo(f, _ctx.Config.TagPatterns))
+                .ToList();
         }
 
         [Fact]
