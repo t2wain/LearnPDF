@@ -2,8 +2,6 @@
 using SkiaSharp;
 using Svg.Skia;
 using System.Text;
-using System.Xml.Linq;
-using UglyToad.PdfPig.Graphics.Colors;
 
 namespace PdfParserLib
 {

@@ -1,143 +1,69 @@
-﻿using System.Drawing;
-using System.Text.RegularExpressions;
-using D = System.Drawing;
-using P = UglyToad.PdfPig.Content;
+﻿using System.Text.RegularExpressions;
+using UglyToad.PdfPig;
 
 namespace PdfParserLib
 {
-
     public static class PdfDrawingUtility
     {
+        public record TagInDocument
+        {
+            public string FileName { get; set; } = null!;
+            public List<string> Tags { get; set; } = [];
+        }
 
-        #region Domain Models
+        #region Tags
 
+        public static List<TagInDocument> ExtractTagFromFile(
+            IEnumerable<string> fileNames, IEnumerable<string> patterns) =>
+                fileNames.Select(f => new TagInDocument()
+                {
+                    FileName = f,
+                    Tags = ExtractTagFromFile(f, patterns)
+                }).ToList();
 
-        /// <summary>
-        /// Text element extracted from a PDF page (vector or OCR).
-        /// </summary>
-        public sealed record TextElement(
-            string Text,
-            RectangleF Bounds);
+        public static List<string> ExtractTagFromFile(string fileName, IEnumerable<string> patterns)
+        {
+            List<string> eqTags = new();
+            List<string> matchWords = new();
 
-        /// <summary>
-        /// Represents a detected graphical symbol on a PDF page.
-        /// </summary>
-        public sealed record SymbolElement(
-            RectangleF Bounds);
+            IEnumerable<PdfTextUtility.TextLine> lines = PdfTextUtility.ExtractText(fileName);
+            var words = PdfTextUtility.GetWordFromLine(lines);
 
-        /// <summary>
-        /// Represents a validated equipment tag associated with a symbol.
-        /// </summary>
-        public sealed record EquipmentTag(
-            string Tag,
-            RectangleF TextBounds,
-            RectangleF SymbolBounds);
+            return MatchWords(words, patterns);
+        }
+
+        public static List<string> MatchWords(IEnumerable<string> words, IEnumerable<string> patterns)
+        {
+            List<string> eqTags = new();
+            List<string> matchWords = new();
+
+            foreach (var pat in patterns)
+            {
+                Regex r = new(pat, RegexOptions.IgnoreCase);
+                var matchTags = MatchWords(r, words);
+                eqTags.AddRange(matchTags.Select(i => i.Tag));
+                matchWords.AddRange(matchTags.Select(i => i.Word));
+                words = words.Where(w => !matchWords.Contains(w)).ToList();
+            }
+
+            eqTags = eqTags
+                .Distinct()
+                .OrderBy(t => t)
+                .ToList();
+
+            return eqTags;
+        }
+
+        public static IEnumerable<(string Word, string Tag)> MatchWords(
+            Regex regex, IEnumerable<string> words) =>
+                words
+                    .Where(w => regex.IsMatch(w))
+                    .SelectMany(w => regex.Matches(w))
+                    .Select(m => (m.Groups[0].Value, m.Groups[1].Value))
+                    .Distinct()
+                    .ToList();
 
         #endregion
 
-        /// <summary>
-        /// Extracts graphical symbol bounding boxes from vector paths.
-        /// Responsibility: symbol geometry detection only.
-        /// </summary>
-        public static IReadOnlyList<SymbolElement> ExtractSymbols(P.Page page) =>
-            page
-                .Paths
-                .Where(p => p.Count >= 3)
-                .Select(p => p.GetBoundingRectangle())
-                .Where(r => r != null)
-                .Select(r => new SymbolElement(RectUtility.ToRectangle(r!.Value, page.Height)))
-                .ToList();
-        
-        public static IReadOnlyList<TextElement> ExtractWords(P.Page page) =>
-            PdfUtility
-                .ExtractAllWordsWithCoordinates(page)
-                .Select(w => new TextElement(w.Text!, w.Bound!.Value))
-                .ToList();
-
-        /// <summary>
-        /// Extracts candidate equipment tag strings from text elements using a regular expression.
-        /// Responsibility: text pattern detection only.
-        /// Filters text elements whose text matches the provided equipment tag regex.
-        /// </summary>
-        public static IReadOnlyList<TextElement> DetectEquipmentTag(
-            IEnumerable<TextElement> textElements,
-            Regex tagRegex)
-        {
-            List<TextElement> matches = textElements
-                .Where(t => !string.IsNullOrWhiteSpace(t.Text))
-                .Where(t => tagRegex.IsMatch(t.Text.Trim()))
-                .Select(t => new TextElement(t.Text.Trim(), t.Bounds))
-                .ToList();
-
-            return matches;
-        }
-
-
-        // <summary>
-        /// Computes spatial relationships between text and symbols.
-        /// Responsibility: geometry-based association only.
-        /// Finds the nearest symbol to a given text element within a maximum distance.
-        /// </summary>
-        public static SymbolElement? SymbolFindNearest(
-            TextElement text,
-            IEnumerable<SymbolElement> symbols,
-            double maxDistance)
-        {
-            PointF pt = RectUtility.GetCenter(text.Bounds);
-
-            IEnumerable<(SymbolElement Symbol, double Distance)> distances =
-                symbols.Select(symbol =>
-                {
-                    D.PointF ps = RectUtility.GetCenter(symbol.Bounds);
-                    double dx = pt.X - ps.X;
-                    double dy = pt.Y - ps.Y;
-                    double distance = Math.Sqrt(dx * dx + dy * dy);
-                    return (symbol, distance);
-                });
-
-            SymbolElement? nearest = distances
-                .Where(x => x.Distance <= maxDistance)
-                .OrderBy(x => x.Distance)
-                .Select(x => x.Symbol)
-                .FirstOrDefault();
-
-            return nearest;
-        }
-
-
-        /// <summary>
-        /// Extracts equipment tags from a PDF page by combining vector text,
-        /// OCR fallback text, regex detection, and symbol association.
-        /// Responsibility: orchestration only.
-        /// </summary>
-        public static IReadOnlyList<EquipmentTag> ExtractEquipmentTag(
-            P.Page page,
-            IEnumerable<TextElement> ocrTextElements,
-            Regex equipmentTagRegex,
-            double maxAssociationDistance)
-        {
-            var vectorText = ExtractWords(page);
-            var allText = vectorText.Concat(ocrTextElements).ToList();
-            var symbols = ExtractSymbols(page);
-
-            var tagTexts = DetectEquipmentTag(allText, equipmentTagRegex);
-
-            return tagTexts
-                .Select(t =>
-                {
-                    var symbol = SymbolFindNearest(
-                        t, symbols, maxAssociationDistance);
-
-                    return symbol == null
-                        ? null
-                        : new EquipmentTag(
-                            t.Text,
-                            t.Bounds,
-                            symbol.Bounds);
-                })
-                .Where(x => x != null)
-                .Cast<EquipmentTag>()
-                .ToList();
-        }
     }
 }

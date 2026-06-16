@@ -7,6 +7,7 @@ namespace PdfParserLib
 {
     public static class OcrUtility
     {
+        public record TextElement (string Text, RectangleF Bound) { }
 
         public static TesseractEngine Create(string tessDataPath, string language = "eng")
         {
@@ -21,14 +22,14 @@ namespace PdfParserLib
             return engine;
         }
 
-        public static IReadOnlyList<PdfDrawingUtility.TextElement> ExtractOcrText(
+        public static IReadOnlyList<TextElement> ExtractOcrText(
             string fileName,
             TesseractEngine engine,
             float scale = 1) => 
                 ExtractOcrText(File.ReadAllBytes(fileName), engine, scale);
 
 
-        public static IReadOnlyList<PdfDrawingUtility.TextElement> ExtractOcrText(
+        public static IReadOnlyList<TextElement> ExtractOcrText(
             byte[] imageBytes,
             TesseractEngine engine,
             float scale = 1)
@@ -49,7 +50,7 @@ namespace PdfParserLib
             ResultIterator iterator = page.GetIterator();
             iterator.Begin();
 
-            List<PdfDrawingUtility.TextElement> results = new();
+            List<TextElement> results = new();
 
             do
             {

@@ -31,44 +31,6 @@ namespace PdfParserLib
             return PdfDocument.Open(pdfFilePath);
         }
 
-        #region ExtractAllWords
-
-        public static IReadOnlyList<string> ExtractAllWords(string pdfFilePath)
-        {
-            using PdfDocument document = GetPdfDocument(pdfFilePath);
-            return ExtractAllWords(document);
-        }
-
-        public static IReadOnlyList<string> ExtractAllWords(PdfDocument document) =>
-            document
-                .GetPages()
-                .SelectMany(ExtractAllWords)
-                .ToList();
-
-        public static IReadOnlyList<string> ExtractAllWords(Page page) =>
-            PdfTextUtility.ExtractText(page);
-
-        #endregion
-
-        #region ExtractAllWordsWithCoordinates
-
-        public static IReadOnlyList<PdfWordData> ExtractAllWordsWithCoordinates(string pdfFilePath)
-        {
-            using PdfDocument document = GetPdfDocument(pdfFilePath);
-            return ExtractAllWordsWithCoordinates(document);
-        }
-
-        public static IReadOnlyList<PdfWordData> ExtractAllWordsWithCoordinates(PdfDocument document) =>
-            document
-                .GetPages()
-                .SelectMany(ExtractAllWordsWithCoordinates)
-                .ToList();
-
-        public static IReadOnlyList<PdfWordData> ExtractAllWordsWithCoordinates(Page page) =>
-            ExploreWords(page.GetWords(), page.Height, new() { SaveData = true });
-
-        #endregion
-
         #region ConvertPdfToPngImages
 
         public static void ConvertPdfToPngImages(string pdfFilePath, string destFolderPath, 

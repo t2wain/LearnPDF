@@ -1,8 +1,8 @@
 using PdfParserLib;
 using PdfParserLib.Entity;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using UglyToad.PdfPig;
+using UglyToad.PdfPig.Content;
 
 namespace PdfTest
 {
@@ -16,68 +16,23 @@ namespace PdfTest
         }
 
         [Fact]
-        public void ExtractWords()
-        {
-            string fileName = _ctx.FileNames[0];
-            IEnumerable<string> words = PdfUtility.ExtractAllWords(fileName).Distinct().ToList();
-        }
-
-        [Fact]
-        public void ExtractLineOfText()
-        {
-            string fileName = _ctx.FileNames[0];
-            using PdfDocument doc = PdfUtility.GetPdfDocument(fileName);
-            foreach (var p in doc.GetPages())
-            {
-                PdfTextUtility.ExtractText(p);
-            }
-        }
-
-        [Fact]
-        public void ExtractWordsWithLocation()
-        {
-            string fileName = _ctx.FileNames[0];
-
-            var words = PdfUtility
-                .ExtractAllWordsWithCoordinates(fileName)
-                .ToList();
-
-            var vert = words
-                .Where(w => w.TextOrientation != "Horizontal")
-                .ToList();
-
-            var horiz = words
-                .Where(w => w.TextOrientation == "Horizontal")
-                .ToList();
-
-        }
-
-        [Fact]
         public void ExtractEquipmentTag()
         {
-            List<string> eqTags = new();
             string fileName = _ctx.FileNames[1];
+            IEnumerable<string> tags = PdfDrawingUtility.ExtractTagFromFile(
+                fileName, _ctx.Config.TagPatterns);
+        }
 
-            PdfDrawing dwg = _ctx.GetDrawing();
-            var tags = dwg.DetectEquipmentTag(fileName);
-
-            //using PdfDocument doc = PdfUtility.GetPdfDocument(fileName);
-            //foreach (var page in doc.GetPages())
-            //{
-            //    var words = PdfTextUtility.ExtractText(page);
-            //    string pat = _ctx.Config.TagPatterns[0];
-            //    Regex r = new(_ctx.Config.TagPatterns[0], RegexOptions.IgnoreCase);
-            //    var tags = words
-            //        .Where(w => r.IsMatch(w))
-            //        .SelectMany(w => r.Matches(w))
-            //        .Select(m => m.Groups[1].Value)
-            //        .Distinct();
-            //    eqTags.AddRange(tags);
-            //}
-            //eqTags = eqTags
-            //    .Distinct()
-            //    .OrderBy(t => t)
-            //    .ToList();
+        [Fact]
+        public void ExtractEquipmentTag2()
+        {
+            IEnumerable<PdfDrawingUtility.TagInDocument> docs = 
+                PdfDrawingUtility.ExtractTagFromFile(_ctx.FileNames, _ctx.Config.TagPatterns);
+            var tags = docs
+                .SelectMany(d => d.Tags)
+                .Distinct()
+                .OrderBy(t => t)
+                .ToList();
         }
 
         [Fact]
