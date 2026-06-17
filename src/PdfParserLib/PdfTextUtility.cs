@@ -31,6 +31,7 @@ namespace PdfParserLib
         public record TextLine
         {
             public string Text { get; set; } = null!;
+            public int Idx { get; set; }
             public List<ProjectedWord> Words { get; set; } = [];
             public TextOrientation Direction { get; set; }
             public List<TextBlock> Blocks { get; set; } = [];
@@ -127,6 +128,28 @@ namespace PdfParserLib
             return columns;
         }
 
+        public static List<TextBlock> GetTextBlock(IEnumerable<TextLine> lines,
+           double? fromX, double? toX, double? fromY, double? toY)
+        {
+            var minX = fromX ?? double.MinValue;
+            var minY = fromY ?? double.MinValue;
+            var maxX = toX ?? double.MaxValue;
+            var maxY = toY ?? double.MaxValue;
+            var rect = new PdfRectangle(minX, minY, maxX, maxY);
+            return GetTextBlock(lines, rect);
+        }
+
+        public static List<TextBlock> GetTextBlock(IEnumerable<TextLine> lines, PdfRectangle rectangle)
+        {
+            var q = lines
+                .SelectMany(l => l.Blocks)
+                .Where(tb => RectUtility.Intersects(tb.BoundingBox, rectangle));
+
+            var blocks = q.ToList();
+            return blocks;
+        }
+
+
         #region Core Logic
 
         public static List<Word> GetPdfWordFromFile(string fileName)
@@ -175,6 +198,7 @@ namespace PdfParserLib
 
             var result = new List<TextLine>();
 
+            int i = 0;
             foreach (var line in lines)
             {
                 // Sort according to reading direction
@@ -185,6 +209,9 @@ namespace PdfParserLib
                     TextOrientation.Horizontal => BuildHorizontalLine(sorted),
                     _ => BuildRotate270Line(sorted)
                 };
+                txtLine.Idx = ++i;
+                foreach (var b in txtLine.Blocks)
+                    b.LineNo = i;
 
                 result.Add(txtLine);
             }
@@ -380,7 +407,7 @@ namespace PdfParserLib
         /// <summary>
         /// Get Y coordinate
         /// </summary>
-        public static double GetProjectedY(PdfRectangle rect, TextOrientation dir)
+        private static double GetProjectedY(PdfRectangle rect, TextOrientation dir)
         {
             double centerY = (rect.Top + rect.Bottom) / 2.0;
 
@@ -415,11 +442,12 @@ namespace PdfParserLib
 
         private static PdfRectangle GetBoundingBox(IEnumerable<ProjectedWord> words)
         {
-            var bottomLeftX = words.Select(w => w.X).Min();
-            var bottomLeftY = words.Select(w => w.Y).Min();
-            var topRightX = bottomLeftX + words.Select(w => w.Width).Sum();
-            var topRightY = bottomLeftY + words.Select(w => w.Height).Max();
-            return new(bottomLeftX, bottomLeftY, topRightX, topRightY);
+            var rects = words.Select(w => w.Word)
+                .Where(w => w != null)
+                .Select(w => w!.BoundingBox)
+                .ToList();
+
+            return RectUtility.GetEnclosingRectangle(rects);
         }
 
         #endregion

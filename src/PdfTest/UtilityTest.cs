@@ -26,13 +26,12 @@ namespace PdfTest
         [Fact]
         public void ExtractEquipmentTag2()
         {
-            IEnumerable<PdfDrawingUtility.DocInfo> docs = 
-                PdfDrawingUtility.ExtractTagFromFile(_ctx.FileNames, _ctx.Config.TagPatterns);
-            var tags = docs
-                .SelectMany(d => d.Tags)
-                .Distinct()
-                .OrderBy(t => t)
-                .ToList();
+            var docs = _ctx.FileNames.Select(f => new PdfDrawing.DocInfo()
+            {
+                DrawingNo = f,
+                Tags = PdfDrawingUtility.ExtractTagFromFile(f, _ctx.Config.TagPatterns)
+            })
+            .ToList();
         }
 
         [Fact]
@@ -45,8 +44,12 @@ namespace PdfTest
             
             lines = lines.Where(l => l.Direction == TextOrientation.Horizontal).ToList();
             var block = PdfDrawingUtility.GetTextBlock(lines, grid, "K", null, null, "9");
-            var block2 = PdfDrawingUtility.GetTextBlock(lines, 2025, 2200, 100, 200);
-            var block3 = PdfDrawingUtility.GetTextBlock(lines, 2025, 2200, 40, 65);
+            var block2 = PdfTextUtility.GetTextBlock(lines, 2025, 2200, 100, 200);
+            var block3 = PdfTextUtility.GetTextBlock(lines, 2025, 2200, 50, 65);
+
+
+            var block4 = PdfDrawingUtility.GetTextBlock(lines, grid, "K", null, "8", "6");
+            var block5 = PdfTextUtility.GetTextBlock(lines, 2025, 2400, 420, 550);
         }
 
         [Fact]
@@ -55,16 +58,25 @@ namespace PdfTest
             string fileName = _ctx.FileNames[4];
             IEnumerable<PdfTextUtility.TextLine> lines = PdfTextUtility.ExtractText(fileName);
             lines = lines.Where(l => l.Direction == TextOrientation.Horizontal).ToList();
-            var titles = PdfDrawingUtility.GetTitleBlock(lines);
-            var info = PdfDrawingUtility.GetDrawingNo(lines);
+            var titles = PdfDrawing.GetTitleBlock(lines);
+            var info = PdfDrawing.GetDrawingNo(lines);
         }
 
         [Fact]
         public void GetDocIno()
         {
             var docs = _ctx.FileNames
-                .Select(f => PdfDrawingUtility.ExtractDocInfo(f, _ctx.Config.TagPatterns))
+                .Select(f => PdfDrawing.ExtractDocInfo(f, _ctx.Config.TagPatterns))
                 .ToList();
+        }
+
+        [Fact]
+        public void GetRevHist()
+        {
+            string fileName = _ctx.FileNames[4];
+            IEnumerable<PdfTextUtility.TextLine> lines = PdfTextUtility.ExtractText(fileName);
+            lines = lines.Where(l => l.Direction == TextOrientation.Horizontal).ToList();
+            IEnumerable<PdfDrawing.Revision> revs = PdfDrawing.GetRevHistory(lines);
         }
 
         [Fact]

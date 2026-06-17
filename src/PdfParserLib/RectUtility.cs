@@ -46,5 +46,50 @@ namespace PdfParserLib
         public static PointF GetCenter(RectangleF rect) =>
             new(rect.Left + rect.Width / 2.0F, rect.Top + rect.Height / 2.0F);
 
+
+        public static bool Intersects(PdfRectangle a, PdfRectangle b)
+        {
+            return a.Left < b.Right &&
+                   a.Right > b.Left &&
+                   a.Bottom < b.Top &&
+                   a.Top > b.Bottom;
+        }
+
+        public static PdfRectangle? GetIntersection(PdfRectangle a, PdfRectangle b)
+        {
+            double left = Math.Max(a.Left, b.Left);
+            double right = Math.Min(a.Right, b.Right);
+            double bottom = Math.Max(a.Bottom, b.Bottom);
+            double top = Math.Min(a.Top, b.Top);
+
+            if (left < right && bottom < top)
+            {
+                return new PdfRectangle(left, bottom, right, top);
+            }
+
+            return null; // no overlap
+        }
+
+        public static PdfRectangle GetEnclosingRectangle(IEnumerable<PdfRectangle> rectangles)
+        {
+            if (rectangles == null || !rectangles.Any())
+                throw new ArgumentException("Rectangle collection is empty.");
+
+            double minLeft = double.MaxValue;
+            double maxRight = double.MinValue;
+            double minBottom = double.MaxValue;
+            double maxTop = double.MinValue;
+
+            foreach (var rect in rectangles)
+            {
+                if (rect.Left < minLeft) minLeft = rect.Left;
+                if (rect.Right > maxRight) maxRight = rect.Right;
+                if (rect.Bottom < minBottom) minBottom = rect.Bottom;
+                if (rect.Top > maxTop) maxTop = rect.Top;
+            }
+
+            return new PdfRectangle(minLeft, minBottom, maxRight, maxTop);
+        }
+
     }
 }

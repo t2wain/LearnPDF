@@ -1,6 +1,6 @@
-﻿using iText.Signatures.Validation.Events;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using UglyToad.PdfPig.Content;
+using UglyToad.PdfPig.Core;
 
 namespace PdfParserLib
 {
@@ -13,56 +13,31 @@ namespace PdfParserLib
             public Dictionary<string, double> XLabel { get; set; } = [];
             public Dictionary<string, double> YLabel { get; set; } = [];
 
-            public (double X, double Y) GetCoord(string xLabel, string yLabel) =>
-                (XLabel.TryGetValue(xLabel, out double x) ? x : double.NaN,
-                 YLabel.TryGetValue(yLabel, out double y) ? y : double.NaN);
-        }
+            public double? GetX(string label) => 
+                XLabel.TryGetValue(label, out double x) ? x : null;
 
-        public class DocInfo
-        {
-            public List<string> Title { get; set; } = [];
-            public string ProjectNo { get; set; } = "";
-            public string DrawingNo { get; set; } = "";
-            public string RevNo { get; set; } = "";
-            public List<string> Tags { get; set; } = [];
-        }
+            public double? GetY(string label) =>
+                YLabel.TryGetValue(label, out double y) ? y : null;
 
-        public static DocInfo ExtractDocInfo(string fileName, IEnumerable<string> tagPatterns)
-        {
-            var lines = PdfTextUtility.ExtractText(fileName);
-            var title = GetTitleBlock(lines);
-            var drawingNo = GetDrawingNo(lines)!;
-            var tags = ExtractTagFromFile(fileName, tagPatterns);
-            return new DocInfo()
-            {
-                Title = title,
-                ProjectNo = drawingNo[1],
-                DrawingNo = drawingNo[2],
-                RevNo = drawingNo[3],
-                Tags = tags
-            };
+            public (double? X, double? Y) GetCoord(string xLabel, string yLabel) =>
+                (GetX(xLabel), GetY(yLabel));
         }
 
         #endregion
 
         #region Tags
 
-        public static List<DocInfo> ExtractTagFromFile(
-            IEnumerable<string> fileNames, IEnumerable<string> patterns) =>
-                fileNames.Select(f => new DocInfo()
-                {
-                    DrawingNo = f,
-                    Tags = ExtractTagFromFile(f, patterns)
-                }).ToList();
-
         public static List<string> ExtractTagFromFile(string fileName, IEnumerable<string> patterns)
+        {
+            IEnumerable<PdfTextUtility.TextLine> lines = PdfTextUtility.ExtractText(fileName);
+            return ExtractTag(lines, patterns);
+        }
+
+        public static List<string> ExtractTag(IEnumerable<PdfTextUtility.TextLine> lines, IEnumerable<string> patterns)
         {
             List<string> eqTags = new();
             List<string> matchWords = new();
-
-            IEnumerable<PdfTextUtility.TextLine> lines = PdfTextUtility.ExtractText(fileName);
             var words = PdfTextUtility.GetWordFromLine(lines);
-
             return MatchWords(words, patterns);
         }
 
@@ -128,6 +103,21 @@ namespace PdfParserLib
             return grid;
         }
 
+        public static PdfRectangle GetBoundingBox(GridLabel grid, 
+            string? fromX, string? toX, string? fromY, string? toY)
+        {
+            double? minX = fromX == null ? null : grid.GetX(fromX);
+            double? maxX = toX == null ? null : grid.GetX(toX);
+            double? minY = fromY == null ? null : grid.GetY(fromY);
+            double? maxY = toY == null ? null : grid.GetY(toY);
+            return new(
+                minX ?? 0, 
+                minY ?? 0, 
+                maxX ?? double.MaxValue, 
+                maxY ?? double.MaxValue
+            ); 
+        }
+
         public static List<PdfTextUtility.TextBlock> GetTextBlock(
             IEnumerable<PdfTextUtility.TextLine> lines,
             GridLabel grid, string? fromX, string? toX, string? fromY, string? toY)
@@ -136,42 +126,7 @@ namespace PdfParserLib
             double? tx = toX == null ? null : grid.XLabel[toX];
             double? fy = fromY == null ? null : grid.YLabel[fromY];
             double? ty = toY == null ? null : grid.YLabel[toY];
-            return GetTextBlock(lines, fx, tx, fy, ty);
-        }
-
-        public static List<PdfTextUtility.TextBlock> GetTextBlock(
-            IEnumerable<PdfTextUtility.TextLine> lines,
-           double? fromX, double? toX, double? fromY, double? toY)
-        {
-            var q = lines.SelectMany(l => l.Blocks);
-            if (fromX != null)
-                q = q.Where(b => b.X >= fromX);
-            if (toX != null)
-                q = q.Where(b => b.X <= toX);
-            if (fromY != null)
-                q = q.Where(b => b.Y >= fromY);
-            if (toY != null)
-                q = q.Where(b => b.Y <= toY);
-
-            var blocks = q.ToList();
-            return blocks;
-        }
-
-        public static List<string> GetTitleBlock(IEnumerable<PdfTextUtility.TextLine> lines)
-        {
-            var block = GetTextBlock(lines, 2025, 2200, 100, 200);
-            return block.Select(b => b.Text).ToList();
-        }
-
-        public static List<string> GetDrawingNo(IEnumerable<PdfTextUtility.TextLine> lines)
-        {
-            var block = GetTextBlock(lines, 2025, 2200, 40, 65);
-            List<string> result = [];
-            if (block.FirstOrDefault() is PdfTextUtility.TextBlock b)
-            {
-                result = b.Text.Split(" ").ToList();
-            }
-            return result;
+            return PdfTextUtility.GetTextBlock(lines, fx, tx, fy, ty);
         }
     }
 }
