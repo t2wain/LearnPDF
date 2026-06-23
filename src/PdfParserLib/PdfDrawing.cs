@@ -68,24 +68,24 @@ namespace PdfParserLib
             };
         }
 
-        public static List<string> GetTitleBlock(IEnumerable<PdfTextUtility.TextLine> lines)
+        public static List<string> GetTitleBlock(IEnumerable<PdfTextUtility.PdfTextLine> lines)
         {
             var block = PdfTextUtility.GetTextBlock(lines, 2025, 2200, 100, 200);
             return block.Select(b => b.Text).ToList();
         }
 
-        public static List<string> GetDrawingNo(IEnumerable<PdfTextUtility.TextLine> lines)
+        public static List<string> GetDrawingNo(IEnumerable<PdfTextUtility.PdfTextLine> lines)
         {
             var block = PdfTextUtility.GetTextBlock(lines, 2025, 2200, 40, 65);
             List<string> result = [];
-            if (block.FirstOrDefault() is PdfTextUtility.TextBlock b)
+            if (block.FirstOrDefault() is PdfTextUtility.PdfTextBlock b)
             {
                 result = b.Text.Split(" ").ToList();
             }
             return result;
         }
 
-        public static List<Revision> GetRevHistory(IEnumerable<PdfTextUtility.TextLine> lines)
+        public static List<Revision> GetRevHistory(IEnumerable<PdfTextUtility.PdfTextLine> lines)
         {
             var blocks = PdfTextUtility.GetTextBlock(lines, 2025, 2400, 445, 550);
             var revLines = blocks

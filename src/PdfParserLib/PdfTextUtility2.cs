@@ -27,8 +27,6 @@ namespace PdfParserLib
             IEnumerable<Word> vw2 = RebuildWords(letters);
             var vb = pageSegmenter.GetBlocks(vw2);
 
-            //var ltxt = vb.SelectMany(b => b.TextLines.Select(GetLineText)).ToList();
-
             return hb.Concat(vb).ToList();
         }
 
@@ -45,7 +43,6 @@ namespace PdfParserLib
 
             return words;
         }
-
 
         public static List<TextBlock> SelectTextBlock(IEnumerable<TextBlock> txtBlocks,
            double? fromX, double? toX, double? fromY, double? toY)
@@ -72,6 +69,12 @@ namespace PdfParserLib
             using PdfDocument doc = PdfUtility.GetPdfDocument(fileName);
             return doc.GetPages().Select(p => (Page : p, Words : p.GetWords())).ToList();
         }
+
+        public static List<string> GetWordText(IEnumerable<TextBlock> txtBlocks) =>
+            txtBlocks
+                .SelectMany(b => b.TextLines.SelectMany(l => l.Words))
+                .Select(GetWordText)
+                .ToList();
 
         public static string GetWordText(Word word)
         {

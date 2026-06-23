@@ -29,11 +29,11 @@ namespace PdfParserLib
 
         public static List<string> ExtractTagFromFile(string fileName, IEnumerable<string> patterns)
         {
-            IEnumerable<PdfTextUtility.TextLine> lines = PdfTextUtility.ExtractText(fileName);
+            IEnumerable<PdfTextUtility.PdfTextLine> lines = PdfTextUtility.ExtractText(fileName);
             return ExtractTag(lines, patterns);
         }
 
-        public static List<string> ExtractTag(IEnumerable<PdfTextUtility.TextLine> lines, IEnumerable<string> patterns)
+        public static List<string> ExtractTag(IEnumerable<PdfTextUtility.PdfTextLine> lines, IEnumerable<string> patterns)
         {
             List<string> eqTags = new();
             List<string> matchWords = new();
@@ -77,14 +77,14 @@ namespace PdfParserLib
 
         #endregion
 
-        public static GridLabel GetGridLabel(IEnumerable<PdfTextUtility.TextLine> lines)
+        public static GridLabel GetGridLabel(IEnumerable<PdfTextUtility.PdfTextLine> lines)
         {
             var grid = new GridLabel();
 
             var s = string.Join(PdfTextUtility.BlockDelimiter, ["A", "B", "C"]);
             var hlines = lines.Where(l => l.Direction == TextOrientation.Horizontal).ToList();
 
-            if (hlines.FirstOrDefault(l => Regex.IsMatch(l.Text, s)) is PdfTextUtility.TextLine hgrid)
+            if (hlines.FirstOrDefault(l => Regex.IsMatch(l.Text, s)) is PdfTextUtility.PdfTextLine hgrid)
             {
                 foreach (var b in hgrid.Blocks)
                     grid.XLabel.TryAdd(b.Text, b.X);
@@ -121,8 +121,8 @@ namespace PdfParserLib
             ); 
         }
 
-        public static List<PdfTextUtility.TextBlock> GetTextBlock(
-            IEnumerable<PdfTextUtility.TextLine> lines,
+        public static List<PdfTextUtility.PdfTextBlock> GetTextBlock(
+            IEnumerable<PdfTextUtility.PdfTextLine> lines,
             GridLabel grid, string? fromX, string? toX, string? fromY, string? toY)
         {
             double? fx = fromX == null ? null : grid.XLabel[fromX];

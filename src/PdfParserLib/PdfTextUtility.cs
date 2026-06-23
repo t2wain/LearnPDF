@@ -18,7 +18,7 @@ namespace PdfParserLib
 
         #region Entity
 
-        public record TextBlock
+        public record PdfTextBlock
         {
             public string Text { get; set; } = null!;
             public List<ProjectedWord> Words { get; set; } = [];
@@ -28,13 +28,13 @@ namespace PdfParserLib
             public double Y => BoundingBox.Bottom;
         }
 
-        public record TextLine
+        public record PdfTextLine
         {
             public string Text { get; set; } = null!;
             public int Idx { get; set; }
             public List<ProjectedWord> Words { get; set; } = [];
             public TextOrientation Direction { get; set; }
-            public List<TextBlock> Blocks { get; set; } = [];
+            public List<PdfTextBlock> Blocks { get; set; } = [];
         }
 
         public record ProjectedWord
@@ -49,15 +49,15 @@ namespace PdfParserLib
             public TextOrientation Direction { get; set; }
         }
 
-        public record TextColumn
+        public record PdfTextColumn
         {
-            public List<TextBlock> Blocks { get; set; } = new();
+            public List<PdfTextBlock> Blocks { get; set; } = new();
             public double MeanX { get; set; }
         }
 
         #endregion
 
-        public static List<TextLine> ExtractText(string fileName)
+        public static List<PdfTextLine> ExtractText(string fileName)
         {
             IEnumerable<Word> allWord = GetPdfWordFromFile(fileName);
             var groups = allWord.GroupBy(l => l.TextOrientation);
@@ -67,7 +67,7 @@ namespace PdfParserLib
             return lines;
         }
 
-        public static List<string> GetWordFromLine(IEnumerable<TextLine> textLines)
+        public static List<string> GetWordFromLine(IEnumerable<PdfTextLine> textLines)
         {
             IEnumerable<string> w1 = textLines
                 .Where(l => l.Direction == TextOrientation.Horizontal)
@@ -88,7 +88,7 @@ namespace PdfParserLib
         /// </summary>
         /// <param name="lines"></param>
         /// <returns></returns>
-        public static List<TextColumn> BuildColumns(IEnumerable<TextLine> lines)
+        public static List<PdfTextColumn> BuildColumns(IEnumerable<PdfTextLine> lines)
         {
             var allBlocks = lines
                 .SelectMany(l =>
@@ -96,7 +96,7 @@ namespace PdfParserLib
                 )
                 .ToList();
 
-            var columns = new List<TextColumn>();
+            var columns = new List<PdfTextColumn>();
 
             foreach (var block in allBlocks)
             {
@@ -105,7 +105,7 @@ namespace PdfParserLib
 
                 if (col == null)
                 {
-                    col = new TextColumn
+                    col = new PdfTextColumn
                     {
                         MeanX = block.X
                     };
@@ -128,7 +128,7 @@ namespace PdfParserLib
             return columns;
         }
 
-        public static List<TextBlock> GetTextBlock(IEnumerable<TextLine> lines,
+        public static List<PdfTextBlock> GetTextBlock(IEnumerable<PdfTextLine> lines,
            double? fromX, double? toX, double? fromY, double? toY)
         {
             var minX = fromX ?? double.MinValue;
@@ -139,7 +139,7 @@ namespace PdfParserLib
             return GetTextBlock(lines, rect);
         }
 
-        public static List<TextBlock> GetTextBlock(IEnumerable<TextLine> lines, PdfRectangle rectangle)
+        public static List<PdfTextBlock> GetTextBlock(IEnumerable<PdfTextLine> lines, PdfRectangle rectangle)
         {
             var q = lines
                 .SelectMany(l => l.Blocks)
@@ -177,7 +177,7 @@ namespace PdfParserLib
         /// <summary>
         /// Align embedded words into line based on X coordinate
         /// </summary>
-        private static List<TextLine> BuildLinesForDirection(
+        private static List<PdfTextLine> BuildLinesForDirection(
             IEnumerable<Word> words, TextOrientation direction)
         {
             var projected = GetProjectedWords(words, direction);
@@ -196,7 +196,7 @@ namespace PdfParserLib
                 projected = projected.OrderBy(p => p.Y).ToList();
             var lines = ClusterBy(projected, p => p.Y, lineTolerance);
 
-            var result = new List<TextLine>();
+            var result = new List<PdfTextLine>();
 
             int i = 0;
             foreach (var line in lines)
@@ -204,7 +204,7 @@ namespace PdfParserLib
                 // Sort according to reading direction
                 var sorted = line.OrderBy(p => p.X).ToList();
 
-                TextLine txtLine = direction switch
+                PdfTextLine txtLine = direction switch
                 {
                     TextOrientation.Horizontal => BuildHorizontalLine(sorted),
                     _ => BuildRotate270Line(sorted)
@@ -265,7 +265,7 @@ namespace PdfParserLib
         /// Therefore, a line of text may actually consist of 
         /// columns of text block.
         /// </summary>
-        private static TextLine BuildHorizontalLine(List<ProjectedWord> words)
+        private static PdfTextLine BuildHorizontalLine(List<ProjectedWord> words)
         {
             // Median width (robust baseline)
             var widths = words.Select(i => i.Width).OrderBy(w => w).ToList();
@@ -274,9 +274,9 @@ namespace PdfParserLib
             // Thresholds (tunable)
             double blockThreshold = medianWidth * WordBlockWidthToleranceAdj;
 
-            var line = new TextLine() { Direction = TextOrientation.Horizontal, Words = words };
+            var line = new PdfTextLine() { Direction = TextOrientation.Horizontal, Words = words };
 
-            var blk = new TextBlock();
+            var blk = new PdfTextBlock();
             blk.Words.Add(words[0]);
             line.Blocks.Add(blk);
 
@@ -291,7 +291,7 @@ namespace PdfParserLib
                 if (gap > blockThreshold)
                 {
                     // create new block
-                    blk = new TextBlock();
+                    blk = new PdfTextBlock();
                     line.Blocks.Add(blk);
                 }
                 blk.Words.Add(curr);
@@ -316,7 +316,7 @@ namespace PdfParserLib
         /// based on Y coordinate of the document. A line of text may actually 
         /// consist of columns of text block.
         /// </summary>
-        private static TextLine BuildRotate270Line(List<ProjectedWord> words)
+        private static PdfTextLine BuildRotate270Line(List<ProjectedWord> words)
         {
             // Median width (robust baseline)
             var widths = words.Select(i => i.Width).OrderBy(w => w).ToList();
@@ -328,12 +328,12 @@ namespace PdfParserLib
 
             //wordThreshold = 13;
 
-            var line = new TextLine() { Direction = TextOrientation.Rotate270, Words = words };
+            var line = new PdfTextLine() { Direction = TextOrientation.Rotate270, Words = words };
 
             var sbLine = new StringBuilder();
             sbLine.Append(words[0].Text);
 
-            var blk = new TextBlock();
+            var blk = new PdfTextBlock();
             blk.Words.Add(words[0]);
             line.Blocks.Add(blk);
 
@@ -358,7 +358,7 @@ namespace PdfParserLib
                     sbBlock.Clear();
 
                     // create new block
-                    blk = new TextBlock();
+                    blk = new PdfTextBlock();
                     line.Blocks.Add(blk);
                 }
                 else if (gap > wordThreshold)

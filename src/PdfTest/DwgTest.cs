@@ -14,6 +14,13 @@ namespace PdfTest
         }
 
         [Fact]
+        public void GetDoc()
+        {
+            var dwg = _ctx.GetDrawing2();
+            var docs = dwg.ExtractDataFromPdf();
+        }
+
+        [Fact]
         public void GetDwgNo()
         {
             var blocks = GetTextBlocks();

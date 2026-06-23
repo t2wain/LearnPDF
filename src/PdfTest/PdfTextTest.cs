@@ -32,7 +32,7 @@ namespace PdfTest
         public void ExtractLineOfText()
         {
             string fileName = _ctx.FileNames[0];
-            List<PdfTextUtility.TextLine> lines = PdfTextUtility.ExtractText(fileName);
+            List<PdfTextUtility.PdfTextLine> lines = PdfTextUtility.ExtractText(fileName);
 
             var h = lines.Where(l => l.Direction == TextOrientation.Horizontal).ToList();
             var hl = h.Select(l => l.Text).ToList();
@@ -46,9 +46,9 @@ namespace PdfTest
         public void BuildTextBlock()
         {
             string fileName = _ctx.FileNames[0];
-            List<PdfTextUtility.TextLine> lines = PdfTextUtility.ExtractText(fileName);
+            List<PdfTextUtility.PdfTextLine> lines = PdfTextUtility.ExtractText(fileName);
             var h = lines.Where(l => l.Direction == TextOrientation.Horizontal).ToList();
-            IEnumerable<PdfTextUtility.TextColumn> cols = PdfTextUtility.BuildColumns(h);
+            IEnumerable<PdfTextUtility.PdfTextColumn> cols = PdfTextUtility.BuildColumns(h);
             var cols2 = cols.OrderByDescending(tc => tc.Blocks.Count).ToList();
         }
 

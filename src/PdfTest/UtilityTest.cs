@@ -38,7 +38,7 @@ namespace PdfTest
         public void FindDwgGrid()
         {
             string fileName = _ctx.FileNames[1];
-            IEnumerable<PdfTextUtility.TextLine> lines = PdfTextUtility.ExtractText(fileName);
+            IEnumerable<PdfTextUtility.PdfTextLine> lines = PdfTextUtility.ExtractText(fileName);
 
             var grid = PdfDrawingUtility.GetGridLabel(lines);
             
@@ -56,7 +56,7 @@ namespace PdfTest
         public void FindDwgInfo()
         {
             string fileName = _ctx.FileNames[4];
-            IEnumerable<PdfTextUtility.TextLine> lines = PdfTextUtility.ExtractText(fileName);
+            IEnumerable<PdfTextUtility.PdfTextLine> lines = PdfTextUtility.ExtractText(fileName);
             lines = lines.Where(l => l.Direction == TextOrientation.Horizontal).ToList();
             var titles = PdfDrawing.GetTitleBlock(lines);
             var info = PdfDrawing.GetDrawingNo(lines);
@@ -74,7 +74,7 @@ namespace PdfTest
         public void GetRevHist()
         {
             string fileName = _ctx.FileNames[4];
-            IEnumerable<PdfTextUtility.TextLine> lines = PdfTextUtility.ExtractText(fileName);
+            IEnumerable<PdfTextUtility.PdfTextLine> lines = PdfTextUtility.ExtractText(fileName);
             lines = lines.Where(l => l.Direction == TextOrientation.Horizontal).ToList();
             IEnumerable<PdfDrawing.Revision> revs = PdfDrawing.GetRevHistory(lines);
         }
