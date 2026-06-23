@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using PdfParserLib;
+using PdfParserLib.Config;
 
 namespace PdfTest
 {
@@ -24,6 +25,8 @@ namespace PdfTest
         }
 
         public PdfDrawing GetDrawing() => _host.Services.GetRequiredService<PdfDrawing>();
+
+        public PdfDrawing2 GetDrawing2() => _host.Services.GetRequiredService<PdfDrawing2>();
 
         public AppConfig Config => _cfg;
 

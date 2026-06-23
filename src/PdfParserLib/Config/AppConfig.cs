@@ -1,4 +1,4 @@
-﻿namespace PdfParserLib
+﻿namespace PdfParserLib.Config
 {
     public class AppConfig
     {
@@ -8,5 +8,7 @@
         public IList<string> ImageFiles { get; set; } = [];
         public string? OcrTrainedDataFolderPath { get; set; }
         public IList<string> TagPatterns { get; set; } = [];
+        public IList<DwgConfig> DwgConfigs { get; set; } = [];
     }
+
 }

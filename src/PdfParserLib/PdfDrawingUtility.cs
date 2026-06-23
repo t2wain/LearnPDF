@@ -41,6 +41,9 @@ namespace PdfParserLib
             return MatchWords(words, patterns);
         }
 
+        public static List<string> ExtractTag(IEnumerable<Word> words, IEnumerable<string> patterns) =>
+            MatchWords(words.Select(w => w.Text), patterns);
+
         public static List<string> MatchWords(IEnumerable<string> words, IEnumerable<string> patterns)
         {
             List<string> eqTags = new();

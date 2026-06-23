@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
+using PdfParserLib.Config;
 
 namespace PdfParserLib
 {
@@ -14,6 +15,10 @@ namespace PdfParserLib
             public string RevNo { get; set; } = "";
             public List<string> Tags { get; set; } = [];
             public List<Revision> Revisions { get; set; } = [];
+            public int PageNumber { get; set; }
+            public string PageSize { get; set; } = "";
+            public double Width { get; set; }
+            public double Height { get; set; }
         }
 
         public class Revision

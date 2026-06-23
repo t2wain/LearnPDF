@@ -7,4 +7,13 @@
 - Tesseract
 - OpenCvSharp4
 
-I have extracted PNG image from the document in byte[], how do I save it to files?
+I'm also using the software PDF-XChange Editor to view the various objects in the PDF documents.
+
+# Extract text object
+
+In PDF-XChange Editor, I can select various objects:
+- Text Elements
+- Image
+- Shape
+
+Write code to perform the similar selection of these objects in the PDF document.

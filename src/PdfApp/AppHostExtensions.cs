@@ -3,6 +3,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using PdfParserLib;
+using PdfParserLib.Config;
 
 namespace PdfApp
 {
@@ -19,7 +20,8 @@ namespace PdfApp
         {
             builder.Configuration
                 .AddJsonFile("appsettings.json", true)
-                .AddJsonFile("appsettings.Development.json", true);
+                .AddJsonFile("appsettings.Development.json", true)
+                .AddJsonFile("dwgconfigs.json", true);
 
             builder.Logging.AddConsole();
 
@@ -27,6 +29,7 @@ namespace PdfApp
 
             builder.Services.Configure<AppConfig>(iconfig.GetSection("AppConfig"));
             builder.Services.AddScoped<PdfDrawing>();
+            builder.Services.AddScoped<PdfDrawing2>();
 
             return builder;
         }

@@ -52,5 +52,13 @@ namespace PdfTest
             var cols2 = cols.OrderByDescending(tc => tc.Blocks.Count).ToList();
         }
 
+        [Fact]
+        public void BuildTextBloc2()
+        {
+            string fileName = _ctx.FileNames[0];
+            List<Word> words = PdfTextUtility.GetPdfWordFromFile(fileName);
+            var blocks = PdfTextUtility2.BuildTextBlockFromWord(words);
+        }
+
     }
 }
