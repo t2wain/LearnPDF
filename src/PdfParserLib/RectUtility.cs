@@ -1,4 +1,5 @@
-﻿using SkiaSharp;
+﻿using PdfParserLib.Config;
+using SkiaSharp;
 using System.Drawing;
 using UglyToad.PdfPig.Core;
 
@@ -91,5 +92,7 @@ namespace PdfParserLib
             return new PdfRectangle(minLeft, minBottom, maxRight, maxTop);
         }
 
+        public static PdfRectangle BuildRectangle(DwgRegion region) =>
+            new(region.X, region.Y, region.X + region.Width, region.Y + region.Height);
     }
 }

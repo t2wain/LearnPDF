@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using PdfParserLib;
 using PdfParserLib.Config;
+using PdfParserLib.Dwg;
 
 namespace PdfApp
 {
@@ -29,7 +29,7 @@ namespace PdfApp
 
             builder.Services.Configure<AppConfig>(iconfig.GetSection("AppConfig"));
             builder.Services.AddScoped<PdfDrawing>();
-            builder.Services.AddScoped<PdfDrawing2>();
+            builder.Services.AddScoped<IDocParser>(p => new DocParser { Name = "M109"});
 
             return builder;
         }

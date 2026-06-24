@@ -11,29 +11,29 @@
           "C:\\devgit\\Data\\PDF\\PQ-107310-ELE-SLN-KZV-00240-001.pdf",
           "C:\\devgit\\Data\\PDF\\PQ-111710-ELE-SLN-KZV-00040-001.pdf"
         ],
-        "Regions": [
-          {
-            "Name": "Title",
-            "X": 2025,
-            "Y": 100,
-            "Width": 175,
-            "Height": 100
-          },
-          {
-            "Name": "DwgNo",
-            "X": 2025,
-            "Y": 40,
-            "Width": 175,
-            "Height": 25
-          },
-          {
-            "Name": "RevHist",
-            "X": 2025,
-            "Y": 445,
-            "Width": 375,
-            "Height": 5
-          }
-        ],
+        "ParserName": "M109",
+        "TitleRegion": {
+          "Name": "Title",
+          "X": 2025,
+          "Y": 100,
+          "Width": 175,
+          "Height": 100
+        },
+        "DwgNoRegion": {
+          "Name": "DwgNo",
+          "X": 2025,
+          "Y": 40,
+          "Width": 475,
+          "Height": 25
+        },
+        "RevHistRegion": {
+          "Name": "RevHist",
+          "X": 2025,
+          "Y": 445,
+          "Width": 375,
+          "Height": 105
+        },
+        "Regions": [],
         "TagPatterns": [
           {
             "Name": "AbrevTag",

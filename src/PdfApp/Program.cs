@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using PdfParserLib;
+using PdfParserLib.Dwg;
 
 namespace PdfApp
 {
@@ -9,7 +9,7 @@ namespace PdfApp
         {
             var host = AppHostExtensions.GetHost(args);
             var d = host.Services.GetRequiredService<PdfDrawing>();
-            var docs = d.ExtractDataFromPdf();
+            var docs = d.ParseDoc();
         }
     }
 }
