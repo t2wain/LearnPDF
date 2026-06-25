@@ -29,7 +29,7 @@ namespace PdfApp
 
             builder.Services.Configure<AppConfig>(iconfig.GetSection("AppConfig"));
             builder.Services.AddScoped<PdfDrawing>();
-            builder.Services.AddScoped<IDocParser>(p => new DocParser { Name = "M109"});
+            builder.Services.AddScoped<IDocParser>(p => new DocParserInstr { Name = "M109"});
 
             return builder;
         }

@@ -3,7 +3,7 @@ using System.Drawing;
 using Tesseract;
 using T = Tesseract;
 
-namespace PdfParserLib
+namespace ImageParserLib
 {
     public static class OcrUtility
     {

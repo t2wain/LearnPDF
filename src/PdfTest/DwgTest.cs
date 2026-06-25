@@ -1,6 +1,8 @@
-﻿using PdfParserLib;
+﻿using OpenCvSharp;
+using PdfParserLib;
 using PdfParserLib.Config;
 using PdfParserLib.Dwg;
+using UglyToad.PdfPig.Content;
 using UglyToad.PdfPig.Core;
 using UglyToad.PdfPig.DocumentLayoutAnalysis;
 
@@ -50,6 +52,14 @@ namespace PdfTest
             var b = GetBound("RevHist");
             var blocks = GetTextBlocks();
             var revHist = _docParser.GetRevHistory(blocks, b);
+        }
+
+        [Fact]
+        public void GetTag()
+        {
+            var words = PdfTextUtility.GetPdfWordFromFile(_dwgCfg.DwgFiles[0]).First().Words;
+            var blocks = PdfTextUtility.BuildTextBlockFromWord(words);
+            var tags = _docParser.GetTags(blocks, _dwgCfg.TagPatterns);
         }
 
         PdfRectangle GetBound(string regionName)

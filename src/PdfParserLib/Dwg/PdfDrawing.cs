@@ -60,8 +60,6 @@ namespace PdfParserLib.Dwg
         /// </summary>
         virtual public List<DocInfo> ExtractDocInfo(string fileName, DwgConfig config, IDocParser parser)
         {
-            var tagPatterns = config.TagPatterns.SelectMany(p => p.RegExs).ToList();
-
             var res = new List<DocInfo>();
             List<(Page Page, IEnumerable<Word> Words)> pages = PdfTextUtility.GetPdfWordFromFile(fileName);
             foreach (var (page, words) in pages)
@@ -99,7 +97,7 @@ namespace PdfParserLib.Dwg
                     doc.Revisions = parser.GetRevHistory(blocks, bound);
                 }
 
-                doc.Tags = parser.GetTags(blocks, tagPatterns);
+                doc.Tags = parser.GetTags(blocks, config.TagPatterns);
 
                 res.Add(doc);
             }

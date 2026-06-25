@@ -1,4 +1,4 @@
-﻿using PdfParserLib;
+﻿using ImageParserLib;
 
 namespace PdfTest
 {

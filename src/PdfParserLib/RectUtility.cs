@@ -28,10 +28,6 @@ namespace PdfParserLib
         }
 
 
-        public static RectangleF ToRectangle(Tesseract.Rect rect) => 
-            new(rect.X1, rect.Y1, rect.Width, rect.Height);
-
-
         public static RectangleF ToRectangle(PdfRectangle rect, double pageHeight)
         {
             float x = (float)rect.Left;
