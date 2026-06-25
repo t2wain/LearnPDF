@@ -10,19 +10,19 @@ namespace PdfParserLib.Dwg
 
         virtual public List<string> GetTags(IEnumerable<TextBlock> txtBlocks, IEnumerable<string> patterns)
         {
-            var words = PdfTextUtility2.GetWordText(txtBlocks);
+            var words = PdfTextUtility.GetWordText(txtBlocks);
             var tags = MatchWords(words, patterns);
             return tags;
         }
         virtual public List<string> GetTitles(IEnumerable<TextBlock> txtBlocks, PdfRectangle bound)
         {
-            var block = PdfTextUtility2.SelectTextBlock(txtBlocks, bound);
+            var block = PdfTextUtility.SelectTextBlock(txtBlocks, bound);
             return block.Select(b => b.Text).ToList();
         }
 
         virtual public List<string> GetDrawingNo(IEnumerable<TextBlock> txtBlocks, PdfRectangle bound)
         {
-            var block = PdfTextUtility2.SelectTextBlock(txtBlocks, bound);
+            var block = PdfTextUtility.SelectTextBlock(txtBlocks, bound);
             return block
                 .OrderBy(b => b.BoundingBox.Left)
                 .Select(b => b.Text)
@@ -31,7 +31,7 @@ namespace PdfParserLib.Dwg
 
         virtual public List<DocRevision> GetRevHistory(IEnumerable<TextBlock> txtBlocks, PdfRectangle bound)
         {
-            var blocks = PdfTextUtility2.SelectTextBlock(txtBlocks, bound);
+            var blocks = PdfTextUtility.SelectTextBlock(txtBlocks, bound);
             var revLines = blocks
                 .GroupBy(b => (int)Math.Floor(b.BoundingBox.Bottom))
                 .Select(g => g

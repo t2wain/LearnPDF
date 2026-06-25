@@ -2,6 +2,7 @@
 {
     public record DocInfo
     {
+        public string FileName { get; set; } = "";
         public List<string> Title { get; set; } = [];
         public string ProjectNo { get; set; } = "";
         public string DrawingNo { get; set; } = "";

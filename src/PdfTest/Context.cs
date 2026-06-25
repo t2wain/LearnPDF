@@ -37,7 +37,7 @@ namespace PdfTest
         public IEnumerable<TextBlock> GetBlocks(string fileName)
         {
             if (_blocks == null)
-                _blocks = PdfTextUtility2.GetTextBlock(fileName);
+                _blocks = PdfTextUtility.GetTextBlock(fileName);
             return _blocks;
         }
 

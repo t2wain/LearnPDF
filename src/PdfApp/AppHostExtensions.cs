@@ -21,7 +21,7 @@ namespace PdfApp
             builder.Configuration
                 .AddJsonFile("appsettings.json", true)
                 .AddJsonFile("appsettings.Development.json", true)
-                .AddJsonFile("dwgconfigs.json", true);
+                .AddJsonFile("dwgconfigs2.Development.json", true);
 
             builder.Logging.AddConsole();
 

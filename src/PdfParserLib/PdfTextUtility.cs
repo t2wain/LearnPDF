@@ -7,7 +7,7 @@ using UglyToad.PdfPig.DocumentLayoutAnalysis.WordExtractor;
 
 namespace PdfParserLib
 {
-    public static class PdfTextUtility2
+    public static class PdfTextUtility
     {
         #region Word
 
@@ -17,7 +17,12 @@ namespace PdfParserLib
         public static List<(Page Page, IEnumerable<Word> Words)> GetPdfWordFromFile(string fileName)
         {
             using PdfDocument doc = PdfUtility.GetPdfDocument(fileName);
-            return doc.GetPages().Select(p => (Page : p, Words : p.GetWords())).ToList();
+            return doc.GetPages()
+                .Select(p => (
+                    Page : p, 
+                    Words : p.GetWords().ToList().AsEnumerable()
+                ))
+                .ToList();
         }
 
         /// <summary>

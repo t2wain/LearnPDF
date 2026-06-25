@@ -4,6 +4,11 @@ using UglyToad.PdfPig.Content;
 
 namespace PdfParserLib.Dwg
 {
+    /// <summary>
+    /// This class contains implementation for a specific
+    /// drawing title blocks. Override this class to provide
+    /// a different implementation for a different title block.
+    /// </summary>
     public class PdfDrawing : IPdfDrawing
     {
         AppConfig _appConfig;
@@ -15,11 +20,18 @@ namespace PdfParserLib.Dwg
             this._parsers = parsers;
         }
 
+        /// <summary>
+        /// Parse all PDF documents specified in all of DwgConfigs
+        /// </summary>
         public List<DocInfo> ParseDoc() =>
             _appConfig.DwgConfigs.SelectMany(ParseDoc).ToList();
 
+        /// <summary>
+        /// Parse all PDF documents specified in a DwgConfig
+        /// </summary>
         public List<DocInfo> ParseDoc(DwgConfig config)
         {
+            // search for the specify parser
             var docParsers = _parsers
                 .Where(p => p.Name == config.ParserName)
                 .ToList();
@@ -29,6 +41,10 @@ namespace PdfParserLib.Dwg
                 .ToList();
         }
 
+        /// <summary>
+        /// Parse all PDF documents specified in a DwgConfig
+        /// using a specific document parser
+        /// </summary>
         public List<DocInfo> ParseDoc(DwgConfig config, IDocParser parser)
         {
             List<DocInfo> docs = config.DwgFiles
@@ -37,19 +53,24 @@ namespace PdfParserLib.Dwg
             return docs;
         }
 
+        /// <summary>
+        /// Each project may implement a different drawing title blocks
+        /// and equipment tag pattern. Override this method to provide
+        /// implementation specific to the project.
+        /// </summary>
         virtual public List<DocInfo> ExtractDocInfo(string fileName, DwgConfig config, IDocParser parser)
         {
             var tagPatterns = config.TagPatterns.SelectMany(p => p.RegExs).ToList();
-            var dRegion = config.Regions.ToDictionary(r => r.Name!);
 
             var res = new List<DocInfo>();
-            List<(Page Page, IEnumerable<Word> Words)> pages = PdfTextUtility2.GetPdfWordFromFile(fileName);
+            List<(Page Page, IEnumerable<Word> Words)> pages = PdfTextUtility.GetPdfWordFromFile(fileName);
             foreach (var (page, words) in pages)
             {
-                var blocks = PdfTextUtility2.BuildTextBlockFromWord(words);
+                var blocks = PdfTextUtility.BuildTextBlockFromWord(words);
 
                 var doc = new DocInfo()
                 {
+                    FileName = fileName,
                     PageNumber = page.Number,
                     PageSize = page.Size.ToString(),
                     Height = page.Height,
@@ -80,19 +101,6 @@ namespace PdfParserLib.Dwg
 
                 doc.Tags = parser.GetTags(blocks, tagPatterns);
 
-                //var doc = new DocInfo()
-                //{
-                //    //Title = title,
-                //    //ProjectNo = drawingNo[1],
-                //    //DrawingNo = drawingNo[2],
-                //    //RevNo = drawingNo[3],
-                //    Tags = tags,
-                //    //Revisions = revHist,
-                //    PageNumber = page.Number,
-                //    PageSize = page.Size.ToString(),
-                //    Height = page.Height,
-                //    Width = page.Width,
-                //};
                 res.Add(doc);
             }
             return res;
