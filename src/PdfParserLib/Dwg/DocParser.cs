@@ -20,13 +20,22 @@ namespace PdfParserLib.Dwg
             return block.Select(b => b.Text).ToList();
         }
 
-        virtual public List<string> GetDrawingNo(IEnumerable<TextBlock> txtBlocks, PdfRectangle bound)
+        virtual public DocInfo GetDrawingNo(IEnumerable<TextBlock> txtBlocks, PdfRectangle bound)
         {
             var block = PdfTextUtility.SelectTextBlock(txtBlocks, bound);
-            return block
+            var drawingNo = block
                 .OrderBy(b => b.BoundingBox.Left)
                 .Select(b => b.Text)
                 .ToList();
+
+            var doc = new DocInfo();
+            if (drawingNo.Count > 0)
+            {
+                doc.ProjectNo = drawingNo[1];
+                doc.DrawingNo = drawingNo[2];
+                doc.RevNo = drawingNo[3];
+            }
+            return doc;
         }
 
         virtual public List<DocRevision> GetRevHistory(IEnumerable<TextBlock> txtBlocks, PdfRectangle bound)

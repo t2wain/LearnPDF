@@ -20,18 +20,43 @@ namespace PdfApp
         {
             builder.Configuration
                 .AddJsonFile("appsettings.json", true)
-                .AddJsonFile("appsettings.Development.json", true)
-                .AddJsonFile("dwgconfigs2.Development.json", true);
+                .AddJsonFile("appsettings.Development.json", true);
 
             builder.Logging.AddConsole();
 
             var iconfig = builder.Configuration;
 
             builder.Services.Configure<AppConfig>(iconfig.GetSection("AppConfig"));
+            builder.Services.PostConfigureAll<AppConfig>(options =>
+            {
+                var dwgConfigs = ReadDwgConfigs();
+                foreach( var dwgConfig in dwgConfigs)
+                    options.DwgConfigs.Add(dwgConfig);
+            });
+
             builder.Services.AddScoped<PdfDrawing>();
-            builder.Services.AddScoped<IDocParser>(p => new DocParserInstr { Name = "M109"});
+            builder.Services.AddScoped<IDocParser>(p => new DocParserInstr { Name = "INSTR"});
+            builder.Services.AddScoped<IDocParser>(p => new DocParser { Name = "SLD" });
 
             return builder;
+        }
+
+        public static List<DwgConfig> ReadDwgConfigs()
+        {
+            var files = Directory.GetFiles(AppContext.BaseDirectory, "dwgconfig*.json");
+
+            List<DwgConfig> res = new();
+            foreach (var provider in files)
+            {
+                var tempConfig = new ConfigurationBuilder()
+                    .AddJsonFile(provider, optional: true)
+                    .Build();
+
+                var list = tempConfig.GetSection("AppConfig:DwgConfigs").Get<List<DwgConfig>>();
+                if (list != null)
+                    res.AddRange(list);
+            }
+            return res;
         }
     }
 }

@@ -8,15 +8,9 @@ namespace PdfParserLib.Dwg
     {
         public string Name { get; set; } = "";
 
-        public List<string> GetDrawingNo(IEnumerable<TextBlock> txtBlocks, PdfRectangle bound)
-        {
-            throw new NotImplementedException();
-        }
+        public DocInfo GetDrawingNo(IEnumerable<TextBlock> txtBlocks, PdfRectangle bound) => new();
 
-        public List<DocRevision> GetRevHistory(IEnumerable<TextBlock> txtBlocks, PdfRectangle bound)
-        {
-            throw new NotImplementedException();
-        }
+        public List<DocRevision> GetRevHistory(IEnumerable<TextBlock> txtBlocks, PdfRectangle bound) => [];
 
         public List<string> GetTags(IEnumerable<TextBlock> txtBlocks, IEnumerable<TagPattern> patterns)
         {
@@ -54,9 +48,6 @@ namespace PdfParserLib.Dwg
             return tags;
         }
 
-        public List<string> GetTitles(IEnumerable<TextBlock> txtBlocks, PdfRectangle bound)
-        {
-            throw new NotImplementedException();
-        }
+        public List<string> GetTitles(IEnumerable<TextBlock> txtBlocks, PdfRectangle bound) => [];
     }
 }

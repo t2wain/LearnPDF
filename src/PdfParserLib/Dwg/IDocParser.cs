@@ -9,7 +9,7 @@ namespace PdfParserLib.Dwg
         string Name { get; set; }
         List<string> GetTags(IEnumerable<TextBlock> txtBlocks, IEnumerable<TagPattern> patterns);
         List<string> GetTitles(IEnumerable<TextBlock> txtBlocks, PdfRectangle bound);
-        List<string> GetDrawingNo(IEnumerable<TextBlock> txtBlocks, PdfRectangle bound);
+        DocInfo GetDrawingNo(IEnumerable<TextBlock> txtBlocks, PdfRectangle bound);
         List<DocRevision> GetRevHistory(IEnumerable<TextBlock> txtBlocks, PdfRectangle bound);
     }
 

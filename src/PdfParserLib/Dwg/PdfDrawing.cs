@@ -84,11 +84,10 @@ namespace PdfParserLib.Dwg
                 if (config.DwgNoRegion is DwgRegion r2)
                 {
                     var bound = RectUtility.BuildRectangle(r2);
-                    var drawingNo = parser.GetDrawingNo(blocks, bound)!;
-                    doc.ProjectNo = drawingNo[1];
-                    doc.DrawingNo = drawingNo[2];
-                    doc.RevNo = drawingNo[3];
-
+                    var d = parser.GetDrawingNo(blocks, bound)!;
+                    doc.ProjectNo = d.ProjectNo;
+                    doc.DrawingNo = d.DrawingNo;
+                    doc.RevNo = d.RevNo;
                 }
 
                 if (config.RevHistRegion is DwgRegion r3)
