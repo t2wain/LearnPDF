@@ -11,6 +11,7 @@ using UglyToad.PdfPig.Graphics.Core;
 using UglyToad.PdfPig.Graphics.Operations;
 using UglyToad.PdfPig.Rendering.Skia;
 using UglyToad.PdfPig.Tokens;
+using SP = UglyToad.PdfPig.Core.PdfSubpath;
 
 namespace PdfParserLib
 {
@@ -30,6 +31,15 @@ namespace PdfParserLib
 
             return PdfDocument.Open(pdfFilePath);
         }
+
+        public static List<Page> GetPdfPages(string pdfFilePath)
+        {
+            using PdfDocument doc = GetPdfDocument(pdfFilePath);
+            return doc.GetPages().ToList();
+        }
+
+        public static List<PdfPath> GetPdfPaths(string pdfFilePath) =>
+            GetPdfPages(pdfFilePath).SelectMany(p => p.Paths).ToList();
 
         #region ConvertPdfToPngImages
 
@@ -69,6 +79,8 @@ namespace PdfParserLib
             public double? PageHeight { get; set; }
             public double? PageWidth { get; set; }
         }
+
+        #region Document
 
         public static PdfDocData ExploreDocument(PdfDocument document, PdfExtractOptions? options = null)
         {
@@ -112,6 +124,10 @@ namespace PdfParserLib
 
             return o;
         }
+
+        #endregion
+
+        #region Page
 
         public static PdfPageData ExplorePage(Page page, PdfExtractOptions? options = null)
         {
@@ -186,9 +202,9 @@ namespace PdfParserLib
             if (opts.SaveData)
                 lstImage.AddRange(lstImageData);
 
-            IReadOnlyList<MarkedContentElement> m = p.GetMarkedContents();
+            ExploreMarkContent(p);
 
-            IReadOnlyDictionary<string, IReadOnlyList<OptionalContentGroupElement>> op = p.GetOptionalContents();
+            ExploreOCG(p);
 
             IEnumerable<Word> words = p.GetWords();
             List<PdfWordData> lstWordData = ExploreWords(words, p.Height, options);
@@ -197,6 +213,62 @@ namespace PdfParserLib
 
             return o;
         }
+
+        #endregion
+
+        #region Content groups
+
+        public static void ExploreOCG(Page page)
+        {
+            IReadOnlyDictionary<string, IReadOnlyList<OptionalContentGroupElement>> op = page.GetOptionalContents();
+            foreach (var (name, ocgElements) in op)
+                foreach (OptionalContentGroupElement ocg in ocgElements)
+                {
+                    IReadOnlyList<string>? intent = ocg.Intent;
+                    MarkedContentElement el = ocg.MarkedContent;
+                    string? n = ocg.Name;
+                    string t = ocg.Type;
+                    var usage = ocg.Usage;
+
+                    ExploreMarkContent(el);
+                }
+        }
+
+        public static void ExploreMarkContent(Page page)
+        {
+            IReadOnlyList<MarkedContentElement> m = page.GetMarkedContents();
+            int cnt = m.Count;
+            foreach (var element in m)
+                ExploreMarkContent(element);
+        }
+
+        public static void ExploreMarkContent(MarkedContentElement element)
+        {
+            string? t = element.ActualText;
+            string? t2 = element.AlternateDescription;
+            IReadOnlyList<MarkedContentElement> c = element.Children;
+            var cnt = c.Count;
+            string? t3 = element.ExpandedForm;
+            IReadOnlyList<IPdfImage> img = element.Images;
+            cnt = img.Count;
+            int idx = element.Index;
+            bool b = element.IsArtifact;
+            string? l = element.Language;
+            IReadOnlyList<Letter> l2 = element.Letters;
+            cnt = l2.Count;
+            int i = element.MarkedContentIdentifier;
+            IReadOnlyList<PdfPath> p = element.Paths;
+            cnt = p.Count;
+            DictionaryToken p2 = element.Properties;
+            string t4 = element.Tag;
+
+            foreach (var el in element.Children)
+                ExploreMarkContent(el);
+        }
+
+        #endregion
+
+        #region Word
 
         public static List<PdfWordData> ExploreWords(IEnumerable<Word> words, 
             double? pageHeight = null, PdfExtractOptions? options = null)
@@ -239,6 +311,10 @@ namespace PdfParserLib
 
         }
 
+        #endregion
+
+        #region PdfPath
+
         public static List<PdfPathData> ExplorePdfPath(IEnumerable<PdfPath> paths, 
             double? pageHeight, PdfExtractOptions? options = null)
         {
@@ -258,7 +334,7 @@ namespace PdfParserLib
                 IColor? c2 = p.StrokeColor;
                 PdfRectangle? b = p.GetBoundingRectangle();
 
-                List<PdfSubpath> subPaths = p;
+                List<SP> subPaths = p;
                 var lstSubPath = new List<PdfSubPathData>();
                 PdfPathData o = new()
                 {
@@ -284,21 +360,23 @@ namespace PdfParserLib
         }
 
         public static List<PdfSubPathData> ExplorePdfSubPath(
-            IReadOnlyList<PdfSubpath> subPaths, PdfExtractOptions? options = null)
+            IReadOnlyList<SP> subPaths, PdfExtractOptions? options = null)
         {
             PdfExtractOptions opts = options ?? new();
             int cnt = subPaths.Count;
-            PdfRectangle? r2 = PdfSubpath.GetBoundingRectangle(subPaths);
+            PdfRectangle? r2 = SP.GetBoundingRectangle(subPaths);
 
             var lst = new List<PdfSubPathData>();
-            foreach (PdfSubpath sp in subPaths)
+            foreach (SP sp in subPaths)
             {
                 r2 = sp.GetBoundingRectangle();
                 PdfPoint pt = sp.GetCentroid();
-                //r2 = sp.GetDrawnRectangle();
 
-                IReadOnlyList<PdfSubpath.IPathCommand> cmds = sp.Commands;
-                List<string> lc = ExplorePdfSubPathCommand(cmds, options);
+                if (sp.IsDrawnAsRectangle)
+                    r2 = sp.GetDrawnRectangle();
+
+                IReadOnlyList<SP.IPathCommand> cmds = sp.Commands;
+                ExplorePdfSubPathCommand(cmds, options);
 
                 var lstSvg = new List<string>();
                 PdfSubPathData o = new()
@@ -317,7 +395,7 @@ namespace PdfParserLib
                 if (opts.SaveData && opts.SavePdfPath)
                 {
                     if (opts.SaveSvgCommand)
-                        lstSvg.AddRange(lc);
+                        lstSvg.AddRange(PdfPathUtility.GetSvgFromPathCommand(cmds));
                     lst.Add(o);
                 }
 
@@ -326,22 +404,23 @@ namespace PdfParserLib
             return lst;
         }
 
-        public static List<string> ExplorePdfSubPathCommand(
-            IReadOnlyList<PdfSubpath.IPathCommand> commands, PdfExtractOptions? options = null)
+        public static void ExplorePdfSubPathCommand(
+            IReadOnlyList<SP.IPathCommand> commands, PdfExtractOptions? options = null)
         {
+
+            // save svg
             PdfExtractOptions opts = options ?? new();
-            StringBuilder b = new();
-            var lst = new List<string>();
-            foreach (PdfSubpath.IPathCommand cmd in commands)
+
+            var cnt = commands.Count();
+            foreach (SP.IPathCommand cmd in commands)
             {
                 PdfRectangle? r2 = cmd.GetBoundingRectangle();
-                cmd.WriteSvg(b, options?.PageHeight ?? 10);
-                if (opts.SaveData && opts.SavePdfPath && opts.SaveSvgCommand)
-                    lst.Add(b.ToString());
-                b.Clear();
             }
-            return lst;
         }
+
+        #endregion
+
+        #region Image
 
         public static List<PdfImageData> ExplorePdfImage(IEnumerable<IPdfImage> images, PdfExtractOptions? options = null)
         {
@@ -373,6 +452,10 @@ namespace PdfParserLib
             return lst;
         }
 
+        #endregion
+
+        #region Annotation
+
         public static List<PdfAnnoData> ExploreAnnotations(
             IEnumerable<Annotation> annotations, PdfExtractOptions? options = null)
         {
@@ -402,6 +485,8 @@ namespace PdfParserLib
             }
             return lst;
         }
+
+        #endregion
 
         public static void ExplorePdfRectangle(PdfRectangle rectangle)
         {

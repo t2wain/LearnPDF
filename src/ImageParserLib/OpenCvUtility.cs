@@ -141,13 +141,13 @@ namespace ImageParserLib
              */
             CircleSegment[] circles = Cv2.HoughCircles(
                 blurred,
-                HoughModes.Gradient,
+                HoughModes.Gradient, // .Gradient,
                 dp: 1.2,              // Inverse ratio of resolution
-                minDist: 50,          // Minimum distance between circles
-                param1: 100,          // Canny edge upper threshold
+                minDist: 20,          // Minimum distance between circles
+                param1: 8,          // Canny edge upper threshold
                 param2: 30,           // Accumulator threshold (lower = more detections)
                 minRadius: 10,        // Minimum radius
-                maxRadius: 100        // Maximum radius
+                maxRadius: 25        // Maximum radius
             );
 
             // Convert image to color for visualization

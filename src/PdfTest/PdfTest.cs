@@ -63,6 +63,14 @@ namespace PdfTest
         }
 
         [Fact]
+        public void GetShapes()
+        {
+            string fileName = _ctx.FileNames[0];
+            var paths = PdfUtility.GetPdfPaths(fileName);
+            PdfPathUtility.GetShapes(paths);
+        }
+
+        [Fact]
         public void SaveSvgToHtml()
         {
             string fileName = _ctx.FileNames[0];

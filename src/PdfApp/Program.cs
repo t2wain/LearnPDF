@@ -8,7 +8,7 @@ namespace PdfApp
         static void Main(string[] args)
         {
             var host = AppHostExtensions.GetHost(args);
-            var d = host.Services.GetRequiredService<PdfDrawing>();
+            var d = host.Services.GetRequiredService<IPdfDrawing>();
             var docs = d.ParseDoc();
         }
     }

@@ -1,8 +1,6 @@
-﻿using OpenCvSharp;
-using PdfParserLib;
+﻿using PdfParserLib;
 using PdfParserLib.Config;
 using PdfParserLib.Dwg;
-using UglyToad.PdfPig.Content;
 using UglyToad.PdfPig.Core;
 using UglyToad.PdfPig.DocumentLayoutAnalysis;
 

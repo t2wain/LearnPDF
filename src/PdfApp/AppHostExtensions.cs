@@ -34,7 +34,7 @@ namespace PdfApp
                     options.DwgConfigs.Add(dwgConfig);
             });
 
-            builder.Services.AddScoped<PdfDrawing>();
+            builder.Services.AddScoped<IPdfDrawing, PdfDrawing>();
             builder.Services.AddScoped<IDocParser>(p => new DocParserInstr { Name = "INSTR"});
             builder.Services.AddScoped<IDocParser>(p => new DocParser { Name = "SLD" });
 
