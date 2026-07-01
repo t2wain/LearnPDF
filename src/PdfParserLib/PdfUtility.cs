@@ -1,5 +1,4 @@
 ﻿using PdfParserLib.Entity;
-using System.Text;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.Actions;
 using UglyToad.PdfPig.Annotations;
@@ -415,6 +414,31 @@ namespace PdfParserLib
             foreach (SP.IPathCommand cmd in commands)
             {
                 PdfRectangle? r2 = cmd.GetBoundingRectangle();
+
+                PdfPoint pt;
+                switch (cmd)
+                {
+                    case SP.Line line:
+                        pt = line.From;
+                        pt = line.To;
+                        break;
+                    case SP.Move move:
+                        pt = move.Location;
+                        break;
+                    case SP.Close close:
+                        break;
+                    case SP.CubicBezierCurve curve:
+                         pt = curve.StartPoint;
+                         pt = curve.EndPoint;
+                         pt = curve.FirstControlPoint;
+                        pt = curve.SecondControlPoint;
+                        break;
+                    case SP.QuadraticBezierCurve curve2:
+                        break;
+                    case SP.BezierCurve curve3:
+                        break;
+                }
+
             }
         }
 

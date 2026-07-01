@@ -1,4 +1,5 @@
-﻿using ImageParserLib;
+﻿using OpenCvSharp;
+using PdfApp;
 
 namespace PdfTest
 {
@@ -14,8 +15,9 @@ namespace PdfTest
         [Fact]
         public void DetectCircle()
         {
-            var f = _ctx.Config.ImageFiles[0];
-            OpenCvUtility.DetectCircles(f);
+            var fpdf = _ctx.FileNames[0];
+            var fimg = _ctx.Config.ImageFiles[0];
+            MainUtility.ShowMarkups(fpdf, fimg);
         }
     }
 }

@@ -4,6 +4,8 @@ namespace ImageParserLib
 {
     public static class OpenCvUtility
     {
+        #region Image Detection
+
         public static void Detect(string imagePath, string templatePath)
         {
             // Load source image
@@ -243,5 +245,30 @@ namespace ImageParserLib
 
             return true;
         }
+
+        #endregion
+
+        #region Drawing
+
+        public static void DrawCircle(Mat image, IEnumerable<CircleSegment> circles)
+        {
+            foreach (var circle in circles)
+            {
+                // Draw circle
+                Cv2.Circle(image, (int)circle.Center.X, (int)circle.Center.Y,
+                           (int)circle.Radius, Scalar.Red, 2);
+            }
+        }
+
+        public static void DrawingBoundingBox(Mat image, IEnumerable<Rect> rectangles)
+        {
+            foreach (var rect in rectangles) 
+            {
+                Cv2.Rectangle(image, rect, Scalar.Red, 2);
+            }
+
+        }
+
+        #endregion
     }
 }

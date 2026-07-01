@@ -67,7 +67,7 @@ namespace PdfTest
         {
             string fileName = _ctx.FileNames[0];
             var paths = PdfUtility.GetPdfPaths(fileName);
-            PdfPathUtility.GetShapes(paths);
+            var pathCommands = PdfPathUtility.GetShapes(paths);
         }
 
         [Fact]
